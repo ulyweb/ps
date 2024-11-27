@@ -1,0 +1,2 @@
+# ps
+Powershell Scripting INFO
