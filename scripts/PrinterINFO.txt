@@ -1,0 +1,20 @@
+# get-printer -ComputerName sv101-printsvr | where-object { $_.name -like "AZ*"} | select-object Name, PrinterStatus | ft *
+
+
+# Full Example Script for Reinstallation:
+# Variables
+$PrinterName = "Xerox Printer"
+$DriverName = "Xerox Driver Name"
+$DriverPath = "C:\Path\To\Driver\XeroxDriver.inf"
+
+# Step 1: Remove the Printer
+Remove-Printer -Name $PrinterName
+
+# Step 2: Remove the Printer Driver
+Remove-PrinterDriver -Name $DriverName
+
+# Step 3: Install the Printer Driver (using pnputil)
+Start-Process -FilePath "pnputil" -ArgumentList "/add-driver `"$DriverPath`" /install" -Wait
+
+Write-Host "Printer and driver have been reinstalled."
+# end of script
