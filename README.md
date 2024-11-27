@@ -55,7 +55,7 @@ iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Re
 
 > > #### My Dailytask for disabling login.
 ```
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/francisuadm/ps/refs/heads/main/scripts/dailytask.ps1 | iex\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/dailytask.ps1 | iex\"' -Verb RunAs"
 ```
 > > #### This will capture a Wi-Fi report.
 ```
@@ -120,7 +120,7 @@ Try {
 
 
 ````diff
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/francisuadm/ps/refs/heads/main/scripts/ResetNetworkSettings.ps1 | iex\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/ResetNetworkSettings.ps1 | iex\"' -Verb RunAs"
 ````
 
 > [!IMPORTANT]
