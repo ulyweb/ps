@@ -3,26 +3,26 @@
 
 > > > #### FileBrowser Installer Script then execute it!
 ```
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/francisuadm/ps/main/scripts/get_fb.ps1 | iex\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/get_fb.ps1 | iex\"' -Verb RunAs"
 ```
 
 > > > #### or you can run it from powershell command
 ````
-irm https://raw.githubusercontent.com/francisuadm/ps/main/scripts/get_fb.ps1 | iex
+irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/get_fb.ps1 | iex
 ````
 
 > #### QR Code generator
 ```
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/francisuadm/ps/main/scripts/qrcodemenu.ps1 | iex\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/qrcodemenu.ps1 | iex\"' -Verb RunAs"
 ```
 > #### Remotely Control
 ```
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/francisuadm/ps/main/scripts/RemotePC.ps1 | iex\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/RemotePC.ps1 | iex\"' -Verb RunAs"
 ```
 
 > #### Remotely Control 1
 ```
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/francisuadm/ps/main/scripts/RemotePC1.ps1 | iex\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/RemotePC1.ps1 | iex\"' -Verb RunAs"
 ```
 
 > #### Winget for Windows 10
@@ -31,12 +31,12 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 ```
 > #### Display User Folders Remotely0
 ```
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/francisuadm/ps/main/scripts/RemovePCUserFolder.ps1 | iex\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/RemovePCUserFolder.ps1 | iex\"' -Verb RunAs"
 ```
 
 > #### Display User Folders Remotely
 ```
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/francisuadm/ps/main/scripts/RemotePCUserFolder.ps1 | iex\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/RemotePCUserFolder.ps1 | iex\"' -Verb RunAs"
 ```
 
 > #### Run PowerShell command another user account.
@@ -50,7 +50,7 @@ runas /noprofile /user:%userdomain%\a-%username% powershell
 ```
 > > ####
 ```
-iwr -useb https://raw.githubusercontent.com/francisuadm/ps/main/scripts/RemovePCUserFolder.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/RemovePCUserFolder.ps1 | iex
 ```
 
 > > #### My Dailytask for disabling login.
