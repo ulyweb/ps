@@ -106,6 +106,10 @@ Try {
     Write-Output "An error occurred: $_"
 }
 
+netsh wlan show wlanreport
+
+check eventviewer log
+
 ````
 
 > [!IMPORTANT]
