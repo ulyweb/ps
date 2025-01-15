@@ -199,7 +199,9 @@ Connect-ExchangeOnline
 
 
 ### Installing Windows Fax and Scan on Windows 11 using PowerShell
-
+````
+Get-WindowsCapability -Online | Where-Object {$_.Name -like "*Print*" }
+````
 Here's how you can do it using PowerShell:
 
 Open PowerShell as Administrator:
@@ -209,7 +211,7 @@ Run the following command to enable the feature:
 
 Use the following PowerShell command to install the "Windows Fax and Scan" feature:
 ````
-dism /online /add-capability /capabilityname:FaxAndScan~~~~0.0.1.0
+dism /online /add-capability /capabilityname:Print.Fax.Scan~~~~0.0.1.0
 ````
 This command uses DISM (Deployment Imaging Service and Management Tool) to add the feature.
 
