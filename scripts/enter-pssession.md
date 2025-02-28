@@ -16,4 +16,7 @@ Get-NetAdapter -Physical | Select-Object MacAddress, Name, InterfaceDescription,
 
 ````
 Get-NetConnectionProfile
+Get-NetIPConfiguration
+Get-NetIPInterface
 ````
+
