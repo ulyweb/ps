@@ -43,7 +43,7 @@ function Display-NetworkStatus {
             Write-Host "- $($active.Type) ($($active.Name))"
             Write-Host "  IP: $($active.IPAddress), MAC: $($active.MACAddress)"
         }     # Keep the window open
-    Read-Host "Press Enter to exit"
+    
     } else {
         Write-Host "No active network connections found."
     }
@@ -51,18 +51,10 @@ function Display-NetworkStatus {
 
 # Call the function to display network status
 Display-NetworkStatus
-
-#Get-NetAdapter | Where-Object { $_.InterfaceDescription -like "*Ethernet*" }
-#Get-NetAdapter | Select-Object Name, InterfaceDescription, PhysicalMediaType
+Read-Host "Press Enter to exit"
 
 } catch {
 # Allow PowerShell to be used again immediately
-Start-Sleep -Seconds 10  # Small delay to prevent overlap
-Write-Host "All tools have been launched successfully!" -ForegroundColor Green
-    Write-Host "An error occurred: $($_.Exception.Message)" -ForegroundColor Red
-    Read-Host "Press Enter to exit"
+Write-Host "An error occurred: $($_.Exception.Message)" -ForegroundColor Red
+Read-Host "Press Enter to exit"
 }
-# Allow PowerShell to be used again immediately
-Start-Sleep -Seconds 10  # Small delay to prevent overlap
-Write-Host "All tools have been launched successfully!" -ForegroundColor Green
-    Read-Host "Press Enter to exit"
