@@ -239,3 +239,10 @@ $username = Read-Host "Enter the username for the profile you want to check"
 ````
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Get-NetworkAdapterStatus.ps1 -outfile c:\it_folder\getnet.ps1
 ````
+
+### If you get an error run the command below:
+````
+Get-ExecutionPolicy
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\getnet.ps1
+````
