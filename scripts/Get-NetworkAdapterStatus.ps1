@@ -42,7 +42,8 @@ function Display-NetworkStatus {
         foreach ($active in $activeAdapters) {
             Write-Host "- $($active.Type) ($($active.Name))"
             Write-Host "  IP: $($active.IPAddress), MAC: $($active.MACAddress)"
-        }
+        }     # Keep the window open
+    Read-Host "Press Enter to exit"
     } else {
         Write-Host "No active network connections found."
     }
