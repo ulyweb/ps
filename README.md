@@ -218,3 +218,19 @@ This command uses DISM (Deployment Imaging Service and Management Tool) to add t
 Wait for the installation to complete: The command will install Windows Fax and Scan, and you should see a message indicating whether the operation was successful or not.
 
 Check for the feature: After installation is complete, you should be able to access "Windows Fax and Scan" by searching for it in the Start menu.
+
+
+### Display current usage of userprofile
+````
+Invoke-Command -ComputerName "RemoteComputerName" -ScriptBlock {
+$username = Read-Host "Enter the username for the profile you want to check"
+
+#   $username = "SpecificUsername"
+    $userProfilePath = "C:\Users\$username"
+    $profileSize = (Get-ChildItem $userProfilePath -Recurse | Measure-Object -Property Length -Sum).Sum / 1GB
+    [PSCustomObject]@{
+        UserName = $username
+        ProfileSizeGB = [math]::Round($profileSize, 2)
+    }
+}
+````
