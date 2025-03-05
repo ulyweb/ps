@@ -246,3 +246,10 @@ Get-ExecutionPolicy
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\getnet.ps1
 ````
+
+### Displaying Disk space via powershell
+````
+Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'" | Select-Object @{Name="Size(GB)";Expression={$_.Size/1GB -as [int]}}, @{Name="FreeSpace(GB)";Expression={$_.FreeSpace/1GB -as [int]}}
+````
+
+####
