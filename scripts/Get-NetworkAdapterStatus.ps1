@@ -1,3 +1,5 @@
+try {
+
 function Get-NetworkAdapterStatus {
     $adapters = Get-NetAdapter | Where-Object { $_.PhysicalMediaType -match 'Wi-Fi|802.11|802.3|Ethernet' }
     
@@ -52,6 +54,13 @@ Display-NetworkStatus
 #Get-NetAdapter | Where-Object { $_.InterfaceDescription -like "*Ethernet*" }
 #Get-NetAdapter | Select-Object Name, InterfaceDescription, PhysicalMediaType
 
+} catch {
+# Allow PowerShell to be used again immediately
+Start-Sleep -Seconds 1  # Small delay to prevent overlap
+Write-Host "All tools have been launched successfully!" -ForegroundColor Green
+    Write-Host "An error occurred: $($_.Exception.Message)" -ForegroundColor Red
+    Read-Host "Press Enter to exit"
+}
 # Allow PowerShell to be used again immediately
 Start-Sleep -Seconds 1  # Small delay to prevent overlap
 Write-Host "All tools have been launched successfully!" -ForegroundColor Green
