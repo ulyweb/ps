@@ -234,8 +234,11 @@ $username = Read-Host "Enter the username for the profile you want to check"
     }
 }
 ````
-
-### Copying to local drive a c:\it_folder
+### Get-NetworkAdapter current IP/MAC
+````
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Get-NetworkAdapterStatus.ps1 | iex\"' -Verb RunAs"
+````
+### Or manual copy it to local drive a c:\it_folder
 ````
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Get-NetworkAdapterStatus.ps1 -outfile c:\it_folder\getnet.ps1
 ````
