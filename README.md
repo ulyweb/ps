@@ -246,6 +246,10 @@ Get-ExecutionPolicy
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\getnet.ps1
 ````
+#### Alternative: Temporarily Bypass Execution Policy
+````
+powershell -ExecutionPolicy Bypass -File .\getnet.ps1
+````
 
 ### Displaying Disk space via powershell
 ````
