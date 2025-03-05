@@ -51,3 +51,7 @@ Display-NetworkStatus
 
 #Get-NetAdapter | Where-Object { $_.InterfaceDescription -like "*Ethernet*" }
 #Get-NetAdapter | Select-Object Name, InterfaceDescription, PhysicalMediaType
+
+# Allow PowerShell to be used again immediately
+Start-Sleep -Seconds 1  # Small delay to prevent overlap
+Write-Host "All tools have been launched successfully!" -ForegroundColor Green
