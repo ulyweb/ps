@@ -15,7 +15,42 @@ Force both Ethernet and Wi-Fi interfaces to be up simultaneously in Windows 10 o
 
 5. Restart your computer for the changes to take effect.
 
-After following these steps, both your Ethernet and Wi-Fi interfaces should remain active simultaneously. You can verify this by checking the Network Connections window or by using the command prompt and typing "ipconfig /all" to see the status of all network adapters[2].
+After following these steps, both your Ethernet and Wi-Fi interfaces should remain active simultaneously. You can verify this by checking the Network Connections window or by using the command prompt and typing "ipconfig /all" to see the status of all network adapters.
 
-Keep in mind that while both interfaces can be active, Windows will typically prioritize one connection over the other for internet traffic. If you want to control which interface is used for specific tasks, you may need to adjust the interface metrics or set up specific routes[3][4].
+Keep in mind that while both interfaces can be active, Windows will typically prioritize one connection over the other for internet traffic. If you want to control which interface is used for specific tasks, you may need to adjust the interface metrics or set up specific routes.
+
+
+I apologize for the confusion. You're right that the GUI steps may not be accurate for Windows 11. Let's use PowerShell commands instead to enable both Ethernet and Wi-Fi interfaces simultaneously and keep them active. Here's a PowerShell script to achieve this:
+
+```powershell
+# Enable both Ethernet and Wi-Fi adapters
+Enable-NetAdapter -Name "Ethernet" -Confirm:$false
+Enable-NetAdapter -Name "Wi-Fi" -Confirm:$false
+
+# Set interface metrics to prioritize Ethernet over Wi-Fi
+Set-NetIPInterface -InterfaceAlias "Ethernet" -InterfaceMetric 10
+Set-NetIPInterface -InterfaceAlias "Wi-Fi" -InterfaceMetric 20
+
+# Restart both adapters to apply changes
+Restart-NetAdapter -Name "Ethernet"
+Restart-NetAdapter -Name "Wi-Fi"
+
+# Display the status of the adapters
+Get-NetAdapter | Where-Object {$_.Name -in ("Ethernet", "Wi-Fi")} | Format-Table Name, Status, LinkSpeed
+```
+
+This script does the following:
+
+1. Enables both Ethernet and Wi-Fi adapters.
+2. Sets a lower interface metric for Ethernet (10) to prioritize it over Wi-Fi (20).
+3. Restarts both adapters to apply the changes.
+4. Displays the status of both adapters.
+
+To run this script:
+
+1. Open PowerShell as an administrator.
+2. Copy and paste the entire script into the PowerShell window.
+3. Press Enter to execute the script.
+
+This approach should work on Windows 11 and will keep both interfaces active while prioritizing Ethernet for network traffic[1][2]. If you need to adjust the adapter names, you can use `Get-NetAdapter` to list all available adapters and their names before running the script.
 
