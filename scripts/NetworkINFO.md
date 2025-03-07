@@ -112,8 +112,9 @@ function Get-NetworkAdapterDetails {
         @{Name='IPv6Metric';Expression={(Get-NetIPInterface -InterfaceIndex $_.ifIndex -AddressFamily IPv6).InterfaceMetric}} | 
     Format-Table -AutoSize
 }
-
+````
 ### Example usage:
+
 ````
 Get-NetworkAdapterDetails
 ````
