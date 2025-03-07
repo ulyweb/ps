@@ -54,3 +54,29 @@ To run this script:
 
 This approach should work on Windows 11 and will keep both interfaces active while prioritizing Ethernet for network traffic[1][2]. If you need to adjust the adapter names, you can use `Get-NetAdapter` to list all available adapters and their names before running the script.
 
+
+
+````
+# Get current network adapters
+$ethernetAdapter = Get-NetAdapter | Where-Object { $_.InterfaceDescription -like "*Ethernet*" } | Select-Object -First 1
+$wifiAdapter = Get-NetAdapter | Where-Object { $_.InterfaceDescription -like "*Wireless*" -or $_.InterfaceDescription -like "*Wi-Fi*" } | Select-Object -First 1
+
+# Rename adapters to ensure consistent naming
+Rename-NetAdapter -Name $ethernetAdapter.Name -NewName "Ethernet" -ErrorAction SilentlyContinue
+Rename-NetAdapter -Name $wifiAdapter.Name -NewName "Wi-Fi" -ErrorAction SilentlyContinue
+
+# Enable both Ethernet and Wi-Fi adapters
+Enable-NetAdapter -Name "Ethernet" -Confirm:$false
+Enable-NetAdapter -Name "Wi-Fi" -Confirm:$false
+
+# Set interface metrics to prioritize Ethernet over Wi-Fi
+Set-NetIPInterface -InterfaceAlias "Ethernet" -InterfaceMetric 10
+Set-NetIPInterface -InterfaceAlias "Wi-Fi" -InterfaceMetric 20
+
+# Restart both adapters to apply changes
+Restart-NetAdapter -Name "Ethernet"
+Restart-NetAdapter -Name "Wi-Fi"
+
+# Display the status of the adapters
+Get-NetAdapter | Where-Object {$_.Name -in ("Ethernet", "Wi-Fi")} | Format-Table Name, Status, LinkSpeed
+````
