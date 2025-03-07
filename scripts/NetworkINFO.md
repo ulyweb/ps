@@ -98,3 +98,23 @@ Select-Object Name, Status, LinkSpeed, MacAddress,
 Format-Table
 
 ````
+#### Function version
+````
+function Get-NetworkAdapterDetails {
+    param (
+        [string[]]$AdapterNames = @("Wired", "Wi-Fi") # Default adapter names
+    )
+
+    Get-NetAdapter | Where-Object { $_.Name -in $AdapterNames } | 
+    Select-Object Name, Status, LinkSpeed, MacAddress, 
+        @{Name='IPv4Address';Expression={(Get-NetIPAddress -InterfaceIndex $_.ifIndex -AddressFamily IPv4).IPAddress}},
+        @{Name='IPv4Metric';Expression={(Get-NetIPInterface -InterfaceIndex $_.ifIndex -AddressFamily IPv4).InterfaceMetric}},
+        @{Name='IPv6Metric';Expression={(Get-NetIPInterface -InterfaceIndex $_.ifIndex -AddressFamily IPv6).InterfaceMetric}} | 
+    Format-Table -AutoSize
+}
+
+# Example usage:
+Get-NetworkAdapterDetails
+````
+
+
