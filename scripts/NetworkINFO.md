@@ -62,21 +62,30 @@ $ethernetAdapter = Get-NetAdapter | Where-Object { $_.InterfaceDescription -like
 $wifiAdapter = Get-NetAdapter | Where-Object { $_.InterfaceDescription -like "*Wireless*" -or $_.InterfaceDescription -like "*Wi-Fi*" } | Select-Object -First 1
 
 # Rename adapters to ensure consistent naming
-Rename-NetAdapter -Name $ethernetAdapter.Name -NewName "Ethernet" -ErrorAction SilentlyContinue
-Rename-NetAdapter -Name $wifiAdapter.Name -NewName "Wi-Fi" -ErrorAction SilentlyContinue
+Rename-NetAdapter -Name $ethernetAdapter.Name -NewName "Wired" #-ErrorAction SilentlyContinue
+Rename-NetAdapter -Name $wifiAdapter.Name -NewName "Wi-Fi" #-ErrorAction SilentlyContinue
 
 # Enable both Ethernet and Wi-Fi adapters
-Enable-NetAdapter -Name "Ethernet" -Confirm:$false
+Enable-NetAdapter -Name "Wired" -Confirm:$false
 Enable-NetAdapter -Name "Wi-Fi" -Confirm:$false
 
 # Set interface metrics to prioritize Ethernet over Wi-Fi
-Set-NetIPInterface -InterfaceAlias "Ethernet" -InterfaceMetric 10
+Set-NetIPInterface -InterfaceAlias "Wired" -InterfaceMetric 10
+Set-NetIPInterface -InterfaceAlias "Wired" -AddressFamily IPv4 -InterfaceMetric 10
 Set-NetIPInterface -InterfaceAlias "Wi-Fi" -InterfaceMetric 20
+Set-NetIPInterface -InterfaceAlias "Wi-Fi" -AddressFamily IPv4 -InterfaceMetric 20
 
 # Restart both adapters to apply changes
-Restart-NetAdapter -Name "Ethernet"
+Restart-NetAdapter -Name "Wired"
 Restart-NetAdapter -Name "Wi-Fi"
 
+# Modify the registry to allow multiple simultaneous connections
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name "EnableActiveProbing" -Value 1
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name "EnableMultipleConnections" -Value 1 -PropertyType DWORD -Force
+
+# Restart the Network Location Awareness service
+Restart-Service NlaSvc -Force
+
 # Display the status of the adapters
-Get-NetAdapter | Where-Object {$_.Name -in ("Ethernet", "Wi-Fi")} | Format-Table Name, Status, LinkSpeed
+Get-NetAdapter | Where-Object {$_.Name -in ("Wired", "Wi-Fi")} | Select-Object Name, Status, LinkSpeed, MacAddress, @{Name='IPv4Address';Expression={(Get-NetIPAddress -InterfaceIndex $_.ifIndex -AddressFamily IPv4).IPAddress}} | Format-Table
 ````
