@@ -113,8 +113,18 @@ function Get-NetworkAdapterDetails {
     Format-Table -AutoSize
 }
 
-# Example usage:
+### Example usage:
+````
 Get-NetworkAdapterDetails
 ````
 
+Example Usage:
+To get details for the default adapters ("Wired" and "Wi-Fi"):
 
+powershell
+Get-NetworkAdapterDetails
+To specify custom adapter names (e.g., "Wired" and "Wireless"):
+
+powershell
+Get-NetworkAdapterDetails -AdapterNames @("Wired", "Wireless")
+This function is reusable, flexible, and makes it easy to retrieve detailed information about your network adapters!
