@@ -1,9 +1,9 @@
 > [!NOTE]
 > # Powershell
 
-#### Windows Utility
+#### Windows Utility - https://github.com/christitustech/winutil
 ````
-https://github.com/christitustech/winutil
+irm "https://christitus.com/win" | iex
 ````
 
 > > > #### FileBrowser Installer Script then execute it!
