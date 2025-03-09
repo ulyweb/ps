@@ -1,6 +1,11 @@
 > [!NOTE]
 > # Powershell
 
+#### Windows Utility
+````
+https://github.com/christitustech/winutil
+````
+
 > > > #### FileBrowser Installer Script then execute it!
 ```
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/get_fb.ps1 | iex\"' -Verb RunAs"
