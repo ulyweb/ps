@@ -153,3 +153,53 @@ If no results are returned, it means all specified processes have been successfu
 Remember that forcefully terminating these processes may interfere with ongoing SCCM operations. It's recommended to use this script only when necessary, such as when troubleshooting SCCM issues or preparing for a clean reinstallation[2].
 
 
+Yes, you can use **WinGet** to install SCCM-related applications or components, but SCCM itself cannot be installed directly via WinGet since it is not a typical application available in the Windows Package Manager repository. However, you can use WinGet to install dependencies or related tools, such as the SCCM client or other configuration tools.
+
+---
+
+### **Steps to Use WinGet for SCCM-Related Installations**
+
+#### **Step 1: Ensure WinGet is Installed**
+WinGet is part of the Windows Package Manager, which comes with the **App Installer**. To ensure it's installed:
+1. Open PowerShell and run:
+   ```powershell
+   winget --version
+   ```
+   If WinGet is not installed, install it using:
+   ```powershell
+   Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
+   ```
+
+#### **Step 2: Install Applications Using WinGet**
+To install SCCM-related applications (e.g., Configuration Manager client), use the following command:
+```powershell
+winget install --id Microsoft.ConfigurationManager.Client --scope machine --silent --accept-package-agreements --accept-source-agreements
+```
+Replace `Microsoft.ConfigurationManager.Client` with the actual package ID if available in the repository.
+
+#### **Step 3: Automate Installation via PowerShell Script**
+You can automate the process by creating a script:
+```powershell
+# Define Winget executable path
+$Winget = "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe"
+
+# Install SCCM Client or related tools
+Start-Process -FilePath $Winget -ArgumentList "install --id Microsoft.ConfigurationManager.Client --scope machine --silent --accept-package-agreements --accept-source-agreements" -Wait -NoNewWindow
+
+Write-Host "SCCM-related application installed successfully."
+```
+
+#### **Step 4: Deploy via SCCM**
+If you want to deploy applications using SCCM itself with WinGet:
+1. Create an SCCM application.
+2. Use a PowerShell script like the one above as the installation command.
+3. Configure the application deployment settings in SCCM.
+
+---
+
+### **Limitations**
+- SCCM itself cannot be installed via WinGet; only related tools or applications can be managed.
+- Ensure that the machine has the **Windows Package Manager** installed and configured properly before using WinGet commands.
+- For system-wide installations, include `--scope machine` in your commands.
+
+This method is ideal for automating installations of SCCM-related tools using modern package management capabilities.
