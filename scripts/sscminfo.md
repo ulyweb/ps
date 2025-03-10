@@ -66,3 +66,57 @@ After removing all traces of SCCM, you can reinstall it.
 
 This process ensures a clean removal and fresh installation of SCCM on your system.
 
+
+
+
+
+To reinstall SCCM (System Center Configuration Manager) via PowerShell, follow these steps:
+
+---
+
+### **Step 1: Uninstall SCCM Client**
+Use the following PowerShell command to uninstall the SCCM client:
+
+```powershell
+Start-Process -FilePath "C:\Windows\CCMSetup\CCMSetup.exe" -ArgumentList "/uninstall" -Wait -NoNewWindow
+```
+
+This will initiate the uninstallation process. Monitor the log file located at `C:\Windows\CCMSetup\CCMSetup.log` to ensure the uninstallation completes successfully[7].
+
+---
+
+### **Step 2: Reinstall SCCM Client**
+After uninstalling, use this PowerShell command to reinstall the SCCM client:
+
+```powershell
+Start-Process -FilePath "C:\Windows\CCMSetup\CCMSetup.exe" -ArgumentList "SMSSITECODE=" -Wait -NoNewWindow
+```
+
+Replace `` with your SCCM site code (e.g., `P01`). This command will install the SCCM client and connect it to the specified site[7].
+
+---
+
+### **Step 3: Verify Installation**
+Once installed, check the log file again at `C:\Windows\CCMSetup\CCMSetup.log` to verify successful installation. You can also confirm functionality by accessing the Configuration Manager in the Control Panel[7].
+
+---
+
+### **Optional: Automate with a Script**
+If you need a complete script for automation, you can combine both steps into a single PowerShell script:
+
+```powershell
+# Uninstall SCCM Client
+Start-Process -FilePath "C:\Windows\CCMSetup\CCMSetup.exe" -ArgumentList "/uninstall" -Wait -NoNewWindow
+
+# Wait for uninstallation to complete
+Start-Sleep -Seconds 60
+
+# Reinstall SCCM Client
+Start-Process -FilePath "C:\Windows\CCMSetup\CCMSetup.exe" -ArgumentList "SMSSITECODE=" -Wait -NoNewWindow
+
+Write-Host "SCCM Client reinstalled successfully."
+```
+
+Replace `` with your actual site code.
+
+
