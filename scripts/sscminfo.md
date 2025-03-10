@@ -120,3 +120,36 @@ Write-Host "SCCM Client reinstalled successfully."
 Replace `` with your actual site code.
 
 
+
+To kill the process ccmsetup.exe *32 and related executables via PowerShell, you can use the following script:
+
+```powershell
+# Kill ccmsetup.exe *32 process
+Get-Process -Name "ccmsetup" -ErrorAction SilentlyContinue | Where-Object {$_.ProcessName -like "*32"} | Stop-Process -Force -Verbose
+
+# Kill all related SCCM processes
+$sccmProcesses = @("ccmexec", "ccmsetup", "ccmrepair", "ccmeval")
+foreach ($process in $sccmProcesses) {
+    Get-Process -Name $process -ErrorAction SilentlyContinue | Stop-Process -Force -Verbose
+}
+```
+
+This script does two things:
+
+1. It specifically targets the ccmsetup.exe *32 process using Get-Process and filters for the 32-bit version, then terminates it using Stop-Process[1][3].
+
+2. It then kills all related SCCM processes by iterating through a list of common SCCM-related process names and terminating them[2].
+
+The `-Force` parameter ensures that the processes are terminated even if they're not responding, and `-Verbose` provides detailed output about the operation[7].
+
+If you want to verify that the processes have been terminated, you can use the following command after running the script:
+
+```powershell
+Get-Process -Name "ccmsetup", "ccmexec", "ccmrepair", "ccmeval" -ErrorAction SilentlyContinue
+```
+
+If no results are returned, it means all specified processes have been successfully terminated[3][7].
+
+Remember that forcefully terminating these processes may interfere with ongoing SCCM operations. It's recommended to use this script only when necessary, such as when troubleshooting SCCM issues or preparing for a clean reinstallation[2].
+
+
