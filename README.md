@@ -302,3 +302,23 @@ try {
 Start-Sleep -Seconds 1  # Small delay to prevent overlap
 Write-Host "All tools have been launched successfully!" -ForegroundColor Green
 ````
+
+#### PowerShell function to renew your IP address and flush the DNS cache, allowing you to execute everything with a single command:
+
+````
+function Refresh-NetworkConfig {
+    [CmdletBinding()]
+    param ()
+
+    Write-Host "Releasing IP address..." -ForegroundColor Yellow
+    ipconfig /release
+
+    Write-Host "Renewing IP address..." -ForegroundColor Yellow
+    ipconfig /renew
+
+    Write-Host "Flushing DNS cache..." -ForegroundColor Yellow
+    Clear-DnsClientCache
+
+    Write-Host "Network configuration refreshed successfully!" -ForegroundColor Green
+}
+````
