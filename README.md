@@ -322,3 +322,8 @@ function Refresh-NetworkConfig {
     Write-Host "Network configuration refreshed successfully!" -ForegroundColor Green
 }
 ````
+
+#### Here's command from RUN Window
+
+````powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Refresh-NetworkConfig.ps1 | iex\"' -Verb RunAs"````
+
