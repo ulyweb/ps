@@ -22,13 +22,13 @@ function Write-Log {
 
 function Get-WifiInfo {
     $wifiOutput = netsh wlan show interfaces
-    $ssid = ($wifiOutput | Select-String 'SSID\s+:').ToString() -replace '.*:\s+'
-    $bssid = ($wifiOutput | Select-String 'BSSID\s+:').ToString() -replace '.*:\s+'
-    $signal = ($wifiOutput | Select-String 'Signal\s+:').ToString() -replace '.*:\s+'
+    $ssid = ($wifiOutput | Select-String 'SSID\s+:' | Select-Object -ExpandProperty Line) -replace '.*:\s+'
+    $bssid = ($wifiOutput | Select-String 'BSSID\s+:' | Select-Object -ExpandProperty Line) -replace '.*:\s+'
+    $signal = ($wifiOutput | Select-String 'Signal\s+:' | Select-Object -ExpandProperty Line) -replace '.*:\s+'
     $linkSpeed = (Get-NetAdapter | Where-Object {$_.Name -like "*Wi-Fi*" -and $_.Status -eq "Up"}).LinkSpeed
 
     return @{
-        SSID = $ssid.Trim()
+        SSID = if ($ssid) { $ssid.Trim() } else { "Hidden SSID" }
         BSSID = $bssid.Trim()
         Signal = $signal.Trim()
         LinkSpeed = $linkSpeed
@@ -38,13 +38,31 @@ function Get-WifiInfo {
 function Test-PacketLoss {
     param($target)
     try {
-        $ping = Test-Connection -ComputerName $target -Count 1 -TimeoutSeconds 2 -ErrorAction Stop
-        return $true
+        $pingOutput = ping -n 1 $target | Out-String
+        $success = $pingOutput -match "Reply from"
+
+        if ($success) {
+            $bytes = if ($pingOutput -match "Bytes=([0-9]+)") { $matches[1] } else { "N/A" }
+            $time = if ($pingOutput -match "time=([0-9]+)") { $matches[1] + "ms" } else { "N/A" }
+            $ttl = if ($pingOutput -match "TTL=([0-9]+)") { $matches[1] } else { "N/A" }
+
+            return @{
+                Success = $true
+                Bytes = $bytes
+                Time = $time
+                TTL = $ttl
+            }
+        }
+        else {
+            return @{ Success = $false }
+        }
     }
     catch {
-        return $false
+        return @{ Success = $false }
     }
 }
+
+
 
 $previousBSSID = $null
 $currentSSID = $null
@@ -53,9 +71,9 @@ Write-Log "Starting Wi-Fi monitoring script..."
 while ($true) {
     $currentWifi = Get-WifiInfo
     
-    if ($currentWifi.SSID -eq "") {
-        Write-Host "Not connected to any Wi-Fi network" -ForegroundColor Red
-        Write-Log "Not connected to any Wi-Fi network"
+    if ($currentWifi.SSID -eq "Hidden SSID") {
+        Write-Host "Connected to a hidden Wi-Fi network" -ForegroundColor Green
+        Write-Log "Connected to a hidden Wi-Fi network"
     }
     else {
         if ($currentWifi.SSID -ne $currentSSID) {
@@ -76,7 +94,7 @@ while ($true) {
     # Perform ping test
     $pingResult = Test-PacketLoss -target $pingTarget
     $totalPings++
-    if (-not $pingResult) {
+    if (-not $pingResult.Success) {
         $failedPings++
     }
     
@@ -86,7 +104,13 @@ while ($true) {
     } else { 0 }
     
     # Log and display statistics
-    $logMessage = "Signal Strength: $($currentWifi.Signal) | Link Speed: $($currentWifi.LinkSpeed) | Packet Loss: $packetLoss% (Total: $totalPings, Failed: $failedPings)"
+    if ($pingResult.Success) {
+        $pingMessage = "Ping to $pingTarget: Bytes=$($pingResult['Bytes']), Time=$($pingResult['Time'])ms, TTL=$($pingResult['TTL'])"
+    } else {
+        $pingMessage = "Ping to $pingTarget failed"
+    }
+    
+    $logMessage = "Signal Strength: $($currentWifi.Signal) | Link Speed: $($currentWifi.LinkSpeed) | Packet Loss: $packetLoss% (Total: $totalPings, Failed: $failedPings) | $pingMessage"
     Write-Host $logMessage
     Write-Log $logMessage
     
