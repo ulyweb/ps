@@ -38,18 +38,30 @@ function Get-WifiInfo {
 function Test-PacketLoss {
     param($target)
     try {
-        $ping = Test-Connection -ComputerName $target -Count 1 -BufferSize 32 -ErrorAction Stop
-        return @{
-            Success = $true
-            Bytes = 32  # Default buffer size for ping
-            Time = $ping.ResponseTime
-            TTL = $ping.ReplyDetails.TimeToLive
+        $pingOutput = ping -n 1 $target
+        $success = $pingOutput -match "Reply from"
+
+        if ($success) {
+            $bytes = ($pingOutput | Select-String "bytes=") -replace ".*bytes=([0-9]+).*", '$1'
+            $time = ($pingOutput | Select-String "time=") -replace ".*time=([0-9]+).*", '$1'
+            $ttl = ($pingOutput | Select-String "TTL=") -replace ".*TTL=([0-9]+).*", '$1'
+
+            return @{
+                Success = $true
+                Bytes = $bytes
+                Time = $time
+                TTL = $ttl
+            }
+        }
+        else {
+            return @{ Success = $false }
         }
     }
     catch {
         return @{ Success = $false }
     }
 }
+
 
 $previousBSSID = $null
 $currentSSID = $null
