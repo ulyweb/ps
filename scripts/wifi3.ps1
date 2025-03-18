@@ -38,13 +38,13 @@ function Get-WifiInfo {
 function Test-PacketLoss {
     param($target)
     try {
-        $pingOutput = ping -n 1 $target
+        $pingOutput = ping -n 1 $target | Out-String
         $success = $pingOutput -match "Reply from"
 
         if ($success) {
-            $bytes = ($pingOutput | Select-String "bytes=") -replace ".*bytes=([0-9]+).*", '$1'
-            $time = ($pingOutput | Select-String "time=") -replace ".*time=([0-9]+).*", '$1'
-            $ttl = ($pingOutput | Select-String "TTL=") -replace ".*TTL=([0-9]+).*", '$1'
+            $bytes = if ($pingOutput -match "Bytes=([0-9]+)") { $matches[1] } else { "N/A" }
+            $time = if ($pingOutput -match "time=([0-9]+)") { $matches[1] + "ms" } else { "N/A" }
+            $ttl = if ($pingOutput -match "TTL=([0-9]+)") { $matches[1] } else { "N/A" }
 
             return @{
                 Success = $true
@@ -61,6 +61,7 @@ function Test-PacketLoss {
         return @{ Success = $false }
     }
 }
+
 
 
 $previousBSSID = $null
