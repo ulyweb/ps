@@ -91,11 +91,12 @@ while ($true) {
     } else { 0 }
     
     # Log and display statistics
-    if ($pingResult.Success) {
-        $pingMessage = "Ping to $pingTarget: Bytes=$($pingResult.Bytes), Time=$($pingResult.Time)ms, TTL=$($pingResult.TTL)"
-    } else {
-        $pingMessage = "Ping to $pingTarget failed"
-    }
+if ($pingResult.Success) {
+    $pingMessage = "Ping to $pingTarget: Bytes=$($pingResult['Bytes']), Time=$($pingResult['Time'])ms, TTL=$($pingResult['TTL'])"
+} else {
+    $pingMessage = "Ping to $pingTarget failed"
+}
+
     
     $logMessage = "Signal Strength: $($currentWifi.Signal) | Link Speed: $($currentWifi.LinkSpeed) | Packet Loss: $packetLoss% (Total: $totalPings, Failed: $failedPings) | $pingMessage"
     Write-Host $logMessage
