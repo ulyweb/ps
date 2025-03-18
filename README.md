@@ -329,3 +329,8 @@ function Refresh-NetworkConfig {
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Refresh-NetworkConfig.ps1 | iex\"' -Verb RunAs"
 ````
 
+#### Wi-Fi Monitor
+
+````
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Wi-Fi_Monitors.ps1 | iex\"' -Verb RunAs"
+````
