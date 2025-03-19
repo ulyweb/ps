@@ -333,3 +333,9 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 ````
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Wi-Fi_Monitors.ps1 | iex\"' -Verb RunAs"
 ````
+
+#### Other way to display Wi-Fi Reports
+
+````
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/wlanreport.ps1 | iex\"' -Verb RunAs"
+````
