@@ -105,7 +105,7 @@ while ($true) {
     
     # Log and display statistics
     if ($pingResult.Success) {
-        $pingMessage = "Ping to $pingTarget: Bytes=$($pingResult['Bytes']), Time=$($pingResult['Time'])ms, TTL=$($pingResult['TTL'])"
+        $pingMessage = "Ping to $pingTarget : Bytes=$($pingResult['Bytes']), Time=$($pingResult['Time'])ms, TTL=$($pingResult['TTL'])"
     } else {
         $pingMessage = "Ping to $pingTarget failed"
     }
