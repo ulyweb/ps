@@ -84,6 +84,10 @@ Get-WindowsUpdate -AcceptAll -Install -AutoReboot
 Restart-Computer -Force
 ````
 
+````
+iwr -Uri https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/UpgradeWindows10toWindows11-23H2.ps1 -outfile c:\it_folder\UpgradeWindows10toWindows11-23H2.ps1
+````
+
 
 > [!IMPORTANT]
 > Powershell script that automates network reset:  
@@ -247,6 +251,7 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 ````
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Get-NetworkAdapterStatus.ps1 -outfile c:\it_folder\getnet.ps1
 ````
+
 
 ### If you get an error run the command below:
 ````
