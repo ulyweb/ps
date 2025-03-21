@@ -269,43 +269,10 @@ powershell -ExecutionPolicy Bypass -File .\getnet.ps1
 Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'" | Select-Object @{Name="Size(GB)";Expression={$_.Size/1GB -as [int]}}, @{Name="FreeSpace(GB)";Expression={$_.FreeSpace/1GB -as [int]}}
 ````
 
-#### Admintools.ps1
+#### Admintools Script run it under Powershell Terminal
 
 ````
-# AdminTools.ps1
-
-# Function to run commands as administrator
-function Run-AsAdmin {
-    param([scriptblock]$ScriptBlock)
-    
-    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command & { $ScriptBlock }" -Verb RunAs -WindowStyle Hidden
-}
-
-# Open SCCM first (runs normally without admin)
-Start-Process -FilePath "C:\Program Files (x86)\Microsoft Configuration Manager\AdminConsole\bin\Microsoft.ConfigurationManagement.exe" -WindowStyle Normal
-
-# Script block for admin tasks (each running separately)
-$adminScriptBlock = {
-    # Open PowerShell ISE in a separate window
-    Start-Process powershell_ise -WindowStyle Normal
-
-    # Open an elevated PowerShell window separately
-    Start-Process powershell -Verb RunAs -WindowStyle Normal
-
-    # Open Active Directory Users and Computers (last)
-    Start-Process dsa.msc -WindowStyle Normal
-}
-
-# Run admin tasks as administrator in separate processes
-try {
-    Run-AsAdmin -ScriptBlock $adminScriptBlock
-} catch {
-    Write-Host "An error occurred: $($_.Exception.Message)" -ForegroundColor Red
-}
-
-# Allow PowerShell to be used again immediately
-Start-Sleep -Seconds 1  # Small delay to prevent overlap
-Write-Host "All tools have been launched successfully!" -ForegroundColor Green
+irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Admintools.ps1" | iex
 ````
 
 #### PowerShell function to renew your IP address and flush the DNS cache, allowing you to execute everything with a single command:
