@@ -285,13 +285,15 @@ RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process pow
 ````
 irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Admintools.ps1" | iex
 ````
-
-✅  **Run **one-liner command** in **Run (`Win + R`)** Powershell regular Privileges** 
+> [!IMPORTANT]
+> 
+✅  **Run (`Win + R`)** Powershell regular Privileges** 
 ````
 RunAs /noprofile /user:%USERDOMAIN%\%USERNAME% "powershell \"Start-Process powershell \""
 ````
-
-✅ **Run **one-liner command** in **Run (`Win + R`)** Powershell with A-Administrator Privileges**  
+> [!IMPORTANT]
+> 
+✅ **Run (`Win + R`)** Powershell with A-Administrator Privileges**  
 ````
 RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process powershell \" -Verb RunAs"
 ````
