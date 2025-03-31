@@ -269,6 +269,13 @@ powershell -ExecutionPolicy Bypass -File .\getnet.ps1
 Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'" | Select-Object @{Name="Size(GB)";Expression={$_.Size/1GB -as [int]}}, @{Name="FreeSpace(GB)";Expression={$_.FreeSpace/1GB -as [int]}}
 ````
 
+> [!IMPORTANT]
+> # Admintools Script run it from Run window
+
+````
+RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Admintools.ps1" | iex"'"
+````
+
 #### Admintools Script run it under Powershell Terminal
 
 ````
