@@ -1,7 +1,12 @@
 > [!NOTE]
 > # Powershell
 
-#### Windows Utility - https://github.com/christitustech/winutil
+> > ### Windows Utility - **Runs PowerShell as Admin from Run (Win+R)** | [https://github.com/christitustech/winutil]
+````
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm "https://christitus.com/win" | iex"' -Verb RunAs"
+````
+
+> > **Runs PowerShell as Admin**
 ````
 irm "https://christitus.com/win" | iex
 ````
