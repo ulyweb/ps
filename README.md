@@ -271,7 +271,7 @@ Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'" | Select-Ob
 
 > [!IMPORTANT]
 > ## Admintools Script run it from **single-line command run command** that ensures:
-✅ **Runs with Administrator Privileges**  
+✅ **Runs with A-Administrator Privileges**  
 ✅ **Sets Execution Policy to Bypass**  
 ✅ **Executes the Admintools Script**  
 ````
