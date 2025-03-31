@@ -272,6 +272,7 @@ Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'" | Select-Ob
 > [!IMPORTANT]
 > ## Admintools Script runs four programs from **single-line run command**:
 > > Active Directory, SCCM Tools, Powershell ISE and Powershell
+> > 
 ✅ **Runs with A-Administrator Privileges**  
 ✅ **Sets Execution Policy to Bypass**  
 ✅ **Executes the Admintools Script**  
