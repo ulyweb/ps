@@ -286,6 +286,17 @@ RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process pow
 irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Admintools.ps1" | iex
 ````
 
+✅ **Runs Powershell regular Privileges** 
+````
+RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process powershell \""
+````
+
+✅ **Runs Powershell with A-Administrator Privileges**  
+````
+RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process powershell \" -Verb RunAs"
+````
+
+
 #### PowerShell function to renew your IP address and flush the DNS cache, allowing you to execute everything with a single command:
 
 ````
