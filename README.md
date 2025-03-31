@@ -288,7 +288,7 @@ irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Adminto
 
 ✅ **Runs Powershell regular Privileges** 
 ````
-RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process powershell \""
+RunAs /noprofile /user:%USERDOMAIN%\%USERNAME% "powershell \"Start-Process powershell \""
 ````
 
 ✅ **Runs Powershell with A-Administrator Privileges**  
