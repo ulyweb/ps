@@ -270,13 +270,12 @@ Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'" | Select-Ob
 ````
 
 > [!IMPORTANT]
-> ### Admintools Script run it from Run window
-
+> ## Admintools Script run it from Run window
 ````
 RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Admintools.ps1" | iex"'"
 ````
 
-#### Admintools Script run it under Powershell Terminal
+## Admintools Script run it under Powershell Terminal
 
 ````
 irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Admintools.ps1" | iex
