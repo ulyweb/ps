@@ -12,8 +12,8 @@ function Update-LocalAdminMembership {
     param()
 
     # Get current user (format: DOMAIN\USER or COMPUTER\USER)
-    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-
+    # $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name #this line will get the current username with a-
+    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name -replace "^.*?-", "" #but one will remove a-
     # Get current members of the Administrators group
     try {
         $adminMembers = Get-LocalGroupMember -Group "Administrators" -ErrorAction Stop | 
