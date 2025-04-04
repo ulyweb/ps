@@ -338,3 +338,9 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 ````
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/wlanreport.ps1 | iex\"' -Verb RunAs"
 ````
+
+> > **Runs PowerShell as Admin - update-localadminmembership**
+````
+irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Update-localadminmembership.ps1" | iex
+````
+
