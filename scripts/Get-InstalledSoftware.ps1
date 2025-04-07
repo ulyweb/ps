@@ -1,9 +1,3 @@
-Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | 
-  Where-Object { $_.DisplayName -like "*Microsoft*" } | 
-  Select-Object DisplayName, DisplayVersion
-
-
-
 function Get-InstalledSoftware {
     # Prompt the user for input
     $searchString = Read-Host "Please enter the string to search for in DisplayName"
