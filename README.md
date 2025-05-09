@@ -344,3 +344,9 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Update-localadminmembership.ps1" | iex
 ````
 
+
+>[!TIP]
+>Start Powershell Admin
+````
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/start-adminps.ps1" | iex"' -Verb RunAs"
+````
