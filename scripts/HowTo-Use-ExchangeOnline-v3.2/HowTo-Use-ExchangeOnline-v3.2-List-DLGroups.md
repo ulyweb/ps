@@ -18,7 +18,7 @@ By following these steps, you will ensure you are only using version **3.2.0** o
 ---
 
 ## Step-by-Step Commands
-
+````
 Clear Screen
 Clear-Host
 
@@ -39,3 +39,4 @@ Connect-ExchangeOnline
 
 List a Distribution Group (replace 'nameHERE!' with your group's name)
 Get-DistributionGroup -Identity "nameHERE!"
+````
