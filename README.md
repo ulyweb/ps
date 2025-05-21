@@ -56,7 +56,7 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 
 > #### Run PowerShell command runas.
 ```
-runas /noprofile /user:%userdomain%\a-%username% powershell
+runas /noprofile /user:$env:USERDOMAIN"\a-"$env:USERNAME powershell
 ```
 > > ####
 ```
