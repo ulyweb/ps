@@ -1,5 +1,6 @@
 # CLS
 Clear-host
+
 #runas /noprofile powershell
 powershell
 
