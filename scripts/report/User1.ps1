@@ -1,23 +1,20 @@
-# CLS
-Clear-host
+# Clear the host screen
+Clear-Host
 
-#runas /noprofile powershell
-powershell
-
-# Setup IT_Folder folder if doesn't exist
+# Define the working folder
 $IT_folder = "C:\IT_Folder"
-if (-not (Test-Path $IT_folder)) {
-    New-Item -Path $IT_folder -ItemType Directory | Out-Null
+
+# Create folder if it doesn't exist
+if (-not (Test-Path -Path $IT_folder)) {
+    New-Item -Path $IT_folder -ItemType Directory -Force | Out-Null
 }
 
-iwr -Uri "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/UserActivity.ps1" -outfile "c:\it_folder\UserActivity.ps1"
+# Define script URL and local path
+$scriptUrl = "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/UserActivity.ps1"
+$localScriptPath = Join-Path $IT_folder "UserActivity.ps1"
 
-# Define the path to the executable
-$exePath = "c:\IT_folder\UserActivity.ps1"
+# Download the UserActivity.ps1 script
+Invoke-WebRequest -Uri $scriptUrl -OutFile $localScriptPath -UseBasicParsing
 
-$adminUser = "$env:USERDOMAIN\a-$env:USERNAME"  # admin username
-
-# Run the process as the specified admin user
-Start-Process -FilePath "powershell $exePath" -NoNewWindow
-
-pause
+# Run the downloaded script with admin privileges
+Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$localScriptPath`"" -Verb RunAs
