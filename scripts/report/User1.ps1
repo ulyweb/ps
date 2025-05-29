@@ -16,5 +16,7 @@ $localScriptPath = Join-Path $IT_folder "UserActivity.ps1"
 # Download the UserActivity.ps1 script
 Invoke-WebRequest -Uri $scriptUrl -OutFile $localScriptPath -UseBasicParsing
 
-# Run the downloaded script with admin privileges
-Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$localScriptPath`"" -Verb RunAs
+# Run the downloaded script with admin privileges and ensure the window stays open
+Start-Process powershell.exe `
+    -ArgumentList "-NoExit -NoProfile -ExecutionPolicy Bypass -File `"$localScriptPath`"" `
+    -Verb RunAs
