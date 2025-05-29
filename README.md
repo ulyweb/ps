@@ -350,3 +350,10 @@ irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/Update-
 ````
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/start-adminps.ps1" | iex"' -Verb RunAs"
 ````
+
+
+> > ### User Activities Report
+````
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/UserActivity.ps1" | iex"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/UserActivity.ps1 | iex\"' -Verb RunAs"
+````
