@@ -10,7 +10,7 @@ if (-not (Test-Path $IT_folder)) {
     New-Item -Path $IT_folder -ItemType Directory | Out-Null
 }
 
-iwr -Uri https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/UserActivity.ps1 -outfile "c:\it_folder\UserActivity.ps1"
+iwr -Uri "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/UserActivity.ps1" -outfile "c:\it_folder\UserActivity.ps1"
 
 # Define the path to the executable
 $exePath = "c:\IT_folder\UserActivity.ps1"
