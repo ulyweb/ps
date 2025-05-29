@@ -1,6 +1,7 @@
 # CLS
 Clear-host
-runas /noprofile powershell
+#runas /noprofile powershell
+powershell
 
 # Setup IT_Folder folder if doesn't exist
 $IT_folder = "C:\IT_Folder"
