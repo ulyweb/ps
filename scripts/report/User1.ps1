@@ -18,5 +18,5 @@ Invoke-WebRequest -Uri $scriptUrl -OutFile $localScriptPath -UseBasicParsing
 
 # Run the downloaded script with admin privileges and ensure the window stays open
 Start-Process powershell.exe `
-    -ArgumentList "-NoExit -NoProfile -ExecutionPolicy Bypass -File `"$localScriptPath`"" `
+    -ArgumentList " -NoExit -NoProfile -ExecutionPolicy Bypass -File `"$localScriptPath`"" `
     -Verb RunAs
