@@ -352,8 +352,8 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 ````
 
 
-> > ### User Activities Report
+>[!TIP]
+>Downloads and runs a user activity report script with admin rights. Keeps the window open to show results after it runs.
 ````
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/UserActivity.ps1" | iex"' -Verb RunAs"
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/UserActivity.ps1 | iex\"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/User1.ps1 | iex\"' -Verb RunAs"
 ````
