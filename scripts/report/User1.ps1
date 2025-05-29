@@ -18,6 +18,6 @@ $exePath = "c:\IT_folder\UserActivity.ps1"
 $adminUser = "$env:USERDOMAIN\a-$env:USERNAME"  # admin username
 
 # Run the process as the specified admin user
-Start-Process -FilePath "powershell" -ArgumentList "/c runas `"$exePath`"" -NoNewWindow
+Start-Process -FilePath "powershell $exePath" -NoNewWindow
 
 pause
