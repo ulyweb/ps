@@ -1,0 +1,2 @@
+>[!NOTE]
+> Windows Reg file
