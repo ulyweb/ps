@@ -1,0 +1,21 @@
+@echo off
+:: Enable Biometrics
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics" /v Enabled /t REG_DWORD /d 1 /f
+
+:: Enable Facial Recognition
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics\FacialFeatures" /v Enabled /t REG_DWORD /d 1 /f
+
+:: Enable Fingerprint Recognition
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics\FingerprintFeatures" /v Enabled /t REG_DWORD /d 1 /f
+
+:: Enable PIN Sign-in
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v AllowDomainPINLogon /t REG_DWORD /d 1 /f
+
+:: Enable Credential Provider for Facial Recognition
+reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers\{8AF662BF-65A0-4D0A-A540-A338A999D36F}" /f
+
+:: Enable Credential Provider for Fingerprint Recognition
+reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers\{BEC09223-B018-416D-A0AC-523971B639F5}" /f
+
+:: Enable Credential Provider for PIN
+reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\Credential Providers\{D6886603-9D2F-4EB2-B667-1971041FA96B}" /f
