@@ -357,3 +357,8 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 ````
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/report/User1.ps1 | iex\"' -Verb RunAs"
 ````
+
+
+
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/office/refs/heads/main/word/normal.ps1 | iex\"' -Verb RunAs"
+remove-startup-apps.ps1
