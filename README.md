@@ -362,5 +362,5 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 >Downloads and runs.
 
 ````
-powershell irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/run-startup-script.bat | cmd
+powershell irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/run-startup-script.bat | cmd
 ````
