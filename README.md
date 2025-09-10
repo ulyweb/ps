@@ -362,5 +362,5 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 >Downloads and runs.
 
 ````
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/remove-startup-apps.ps1 | iex\"' -Verb RunAs"
+powershell irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/run-startup-script.bat | cmd
 ````
