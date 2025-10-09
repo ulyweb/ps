@@ -20,24 +20,20 @@
 .EXAMPLE
   .\Invoke-RemoteDataCollect.ps1
   # The script will prompt for the ComputerName and Date.
-  # Simple Remote / Run / Fetch with streamlined prompts.
-  # All-in-one script. Only prompts for ComputerName and Date.
-
 #>
 
 $ErrorActionPreference = 'Stop'
 
-Write-Host '=== Simple Remote / Run / Fetch (All-in-One) ===' -ForegroundColor Cyan
+Write-Host '=== Invoke-RemoteDataCollect (All-in-One) ===' -ForegroundColor Cyan
 
-# --- BEGIN EMBEDDED WORKER SCRIPT ---
-
-# Note: Using @"..."@ with careful escaping to ensure the remote script content is generated correctly.
+# --- BEGIN EMBEDDED WORKER SCRIPT CONTENT ---
+# This is the worker script that runs on the remote machine.
 $RemoteWorkerScriptContent = @"
 <#
-Get-RemoteEvents-Plus.ps1 (v1.2 - Embedded Worker Script)
+RemoteEventsWorker.ps1 (Embedded Worker Script)
 Purpose:
-  - Collect key crash and session events for a specific date.
-  - Emit current disk space and pagefile configuration/usage.
+  - Collect key crash and session events for a specific date, including reboots and service failures.
+  - Emit current memory, disk space, and pagefile configuration/usage.
 #>
 
 param(
@@ -60,14 +56,12 @@ function Export-EventsCsv {
     # Create an empty CSV with headers for consistency
     `$nullObj = "" | Select-Object @{n='TimeCreated';e={""}}, @{n='ProviderName';e={""}}, @{n='Id';e={""}}, @{n='LevelDisplayName';e={""}}, @{n='Message';e={""}}
     `$nullObj | Export-Csv -Path `$Path -NoTypeInformation -Encoding UTF8
-    # === FIX APPLIED HERE: Corrected format string for empty CSV ===
     Write-Host ("Saved (empty): {0}" -f `$Path)
     return
   }
   `$Events |
     Select-Object TimeCreated, ProviderName, Id, LevelDisplayName, Message |
     Export-Csv -Path `$Path -NoTypeInformation -Encoding UTF8
-  # === FIX APPLIED HERE: Corrected format string for saved CSV ===
   Write-Host ("Saved: {0}" -f `$Path)
 }
 
@@ -76,7 +70,6 @@ function Get-EventsLocalOrRemote {
   `$filter = @{ LogName = `$LogName; StartTime = `$StartTime; EndTime = `$EndTime }
   if (`$Ids -and `$Ids.Count -gt 0) { `$filter['Id'] = `$Ids }
 
-  # The logic here is simplified because this worker script always runs LOCALLY on the target machine.
   try { return Get-WinEvent -FilterHashtable `$filter -ErrorAction Stop }
   catch { Write-Warning ('Get-WinEvent failed for log ''{{0}}'' on {{1}}: {{2}}' -f `$LogName, `$Computer, `$_.Exception.Message); return @() }
 }
@@ -96,14 +89,14 @@ if (-not (Test-Path `$csvRoot)) { New-Item -Path `$csvRoot -ItemType Directory -
 
 Write-Host ('Collecting events for {0} from {1} to {2} ...' -f `$ComputerName, `$start, `$end)
 
-# What to collect (CRASH/SERVICE/SESSION)
+# What to collect (CRASH/SERVICE/SESSION/REBOOT)
 `$queries = @(
-  # Application crashes + hangs + .NET runtime errors
-  @{ Name='Application_1000_1001_1002_1026'; Log='Application'; Ids = @(1000,1001,1002,1026) },
-  # Service crashes + Resource Exhaustion Detector (2004)
-  @{ Name='System_SCM_2004'; Log='System'; Ids = @(7031,7034,2004) },
-  # Session lock/unlock + logon/logoff (Security)
-  @{ Name='Security_Session'; Log='Security'; Ids = @(4800,4801,4624,4634) },
+  # Application crashes, hangs, .NET runtime errors, and Resource Warnings (333)
+  @{ Name='Application_Stability'; Log='Application'; Ids = @(1000,1001,1002,1026,333) }, 
+  # Service failures (7000, 7009), Resource Exhaustion (2004), and SYSTEM FAILURE/REBOOT events (6005, 6008, 1074)
+  @{ Name='System_Failures_Reboots'; Log='System'; Ids = @(7031,7034,2004,6005,6008,1074,7000,7009) },
+  # Session lock/unlock, logon/logoff (Security), and Logon Failures (4625)
+  @{ Name='Security_Session'; Log='Security'; Ids = @(4800,4801,4624,4634,4625) }, 
   # WER operational (if exists)
   @{ Name='WER_Operational'; Log='Microsoft-Windows-WER-SystemErrorReporting/Operational'; Ids = @() }
 )
@@ -119,16 +112,41 @@ foreach (`$q in `$queries) {
   }
 }
 
-# --- System status: disk space + pagefile ---
+# --- System status: disk space + pagefile + memory ---
 Write-Host ""
-Write-Host "=== System Status Snapshot (Disk + Pagefile) ==="
+Write-Host "=== System Status Snapshot (Disk + Pagefile + Memory) ==="
 
-# All fixed disks
+# ADDED: Memory Snapshot
+`$osInfo = Get-CimInstance Win32_OperatingSystem
+
+# Convert Physical Memory (KB to GB)
+`$totalRAMGB = [math]::Round((`$osInfo.TotalVisibleMemorySize * 1KB) / 1GB, 2)
+`$freeRAMGB  = [math]::Round((`$osInfo.FreePhysicalMemory * 1KB) / 1GB, 2)
+`$usedRAMGB  = [math]::Round((`$totalRAMGB - `$freeRAMGB), 2)
+
+# Raw Virtual Memory (MB)
+`$totalVirtualMBRaw = `$osInfo.TotalVirtualMemorySize
+`$freeVirtualMBRaw  = `$osInfo.FreeVirtualMemory
+
+# FIX: Create memory object with explicitly named properties for clean Format-Table output
+`$memoryDisplayObject = [pscustomobject]@{
+  TotalRAM = "{0:N2} GB" -f `$totalRAMGB
+  FreeRAM  = "{0:N2} GB" -f `$freeRAMGB
+  UsedRAM  = "{0:N2} GB" -f `$usedRAMGB
+  TotalVirtual = "{0:N0} MB" -f `$totalVirtualMBRaw
+  FreeVirtual  = "{0:N0} MB" -f `$freeVirtualMBRaw
+}
+
+# Display memory
+`$memoryDisplayObject | Format-Table -AutoSize
+
+
+# All fixed disks - Convert to GB
 `$disks = Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | Select-Object DeviceID, VolumeName,
-  @{n='SizeGB';e={[math]::Round((`$_.Size / 1GB), 2)}},
-  @{n='FreeGB';e={[math]::Round((`$_.FreeSpace / 1GB), 2)}},
-  @{n='UsedGB';e={[math]::Round(((`$_.Size - `$_.FreeSpace) / 1GB), 2)}},
-  @{n='FreePct';e={[math]::Round( ((`$_.FreeSpace / `$_.Size) * 100), 2) }}
+  @{Name='SizeGB';Expression={[math]::Round((`$_.Size / 1GB), 2)}},
+  @{Name='FreeGB';Expression={[math]::Round((`$_.FreeSpace / 1GB), 2)}},
+  @{Name='UsedGB';Expression={[math]::Round(((`$_.Size - `$_.FreeSpace) / 1GB), 2)}},
+  @{Name='FreePct';Expression={[math]::Round( ((`$_.FreeSpace / `$_.Size) * 100), 2) }}
 `$disks | Format-Table -AutoSize
 
 # Pagefile settings (configured) and usage (current)
@@ -152,11 +170,21 @@ try {
 }
 
 # Build rows (null-safe) for CSV
+
+# ADDED: Memory row for CSV (using raw calculated numbers for export)
+`$memRow = [pscustomobject]@{
+  Section='Memory'; TotalRAMGB=`$totalRAMGB; FreeRAMGB=`$freeRAMGB; UsedRAMGB=`$usedRAMGB;
+  TotalVirtualMB=`$totalVirtualMBRaw; FreeVirtualMB=`$freeVirtualMBRaw
+}
+# END ADDED
+
+# Disk Rows (using raw calculated objects for export)
 `$diskRows = @()
 if (`$disks) {
   `$disks | ForEach-Object {
     `$diskRows += [pscustomobject]@{
       Section='Disk'; DeviceID=`$_.DeviceID; VolumeName=`$_.VolumeName;
+      # NOTE: These are referencing the correctly-calculated properties from the pipeline above
       SizeGB=`$_.SizeGB; FreeGB=`$_.FreeGB; UsedGB=`$_.UsedGB; FreePct=`$_.FreePct
     }
   }
@@ -173,12 +201,10 @@ if (`$pfSetting) {
 
 `$pfUseRows = @()
 if (`$pfUsage) {
-  `$pfUsage | ForEach-Object {
-    `$pfUseRows += [pscustomobject]@{
+  `$pfUseRows += [pscustomobject]@{
       Section='PageFileUsage'; Name=`$_.Name; AllocatedMB=`$_.AllocatedBaseSize; CurrentUsageMB=`$_.CurrentUsage; PeakUsageMB=`$_.PeakUsage
     }
   }
-}
 
 `$pfSummaryRow = [pscustomobject]@{
   Section='PageFileSummary'; Computer=`$pfSummary.Computer; AutoManaged=`$pfSummary.AutoManaged;
@@ -187,7 +213,8 @@ if (`$pfUsage) {
 
 # Combine rows safely (null/empty tolerant) and export
 `$combined = @()
-foreach (`$set in @(`$diskRows, `$pfSetRows, `$pfUseRows, `$pfSummaryRow)) {
+# Ensure the new memory row is included
+foreach (`$set in @(`$memRow, `$diskRows, `$pfSetRows, `$pfUseRows, `$pfSummaryRow)) {
   if (`$set) { `$combined += @(`$set) }
 }
 
@@ -199,9 +226,10 @@ Write-Host ""
 Write-Host "Done. CSV files are in C:\Temp"
 "@
 
-# --- END EMBEDDED WORKER SCRIPT ---
+# --- END EMBEDDED WORKER SCRIPT CONTENT ---
 
-# Step 1: Remote computer name
+
+# Step 1: Remote computer name (MANDATORY PROMPT)
 $ComputerName = Read-Host 'ComputerName (e.g., UserPC01 or IP)'
 if ([string]::IsNullOrWhiteSpace($ComputerName)) {
   throw 'ComputerName is required.'
@@ -211,7 +239,7 @@ if ([string]::IsNullOrWhiteSpace($ComputerName)) {
 
 # Define the remote worker file path
 $remoteFolder = 'C:\Temp'
-$remoteWorkerFileName = 'RemoteEventsWorker.ps1' # New hardcoded worker script name
+$remoteWorkerFileName = 'RemoteEventsWorker.ps1' 
 $remotePs1Path = Join-Path $remoteFolder $remoteWorkerFileName
 Write-Host "Remote destination folder: C:\Temp"
 Write-Host "Remote worker script path: $remotePs1Path"
@@ -228,25 +256,32 @@ Invoke-Command -Session $sess -ScriptBlock {
   }
 } -ArgumentList $remoteFolder
 
-# Step 4: Create script(s) on remote (REPLACED Copy-Item)
+# Step 4: Create script on remote (REPLACING Copy-Item)
 Write-Host ('Creating worker script on {0} ...' -f $remotePs1Path) -ForegroundColor Cyan
 Invoke-Command -Session $sess -ScriptBlock {
     param($path, $content)
-    # Use Set-Content to write the embedded script string to the remote file
     $content | Set-Content -Path $path -Encoding UTF8 -Force
 } -ArgumentList $remotePs1Path, $RemoteWorkerScriptContent
 Write-Host 'Script creation complete.'
 
 
-# Step 5: Run the created script on the remote (Default: Yes)
-# REQUIRED DYNAMIC PROMPT: Date parameter
-$scriptDate = Read-Host 'REQUIRED: Date to search for events (e.g., 2025-10-06)'
-if ([string]::IsNullOrWhiteSpace($scriptDate)) { throw 'Date is required to run the remote script.' }
+# Step 5: Run the created script on the remote 
+
+# ADD DEFAULT DATE LOGIC
+$defaultDate = '2025-10-06'
+$scriptDate = Read-Host "REQUIRED: Date to search for events [default: $defaultDate]"
+
+if ([string]::IsNullOrWhiteSpace($scriptDate)) { 
+    $scriptDate = $defaultDate
+    Write-Host "Using default date: $defaultDate" -ForegroundColor Yellow
+}
+# END ADD DEFAULT DATE LOGIC
+
 
 # Optional arguments (Default: none)
 $optionalArgs = ''
 
-# Construct the FULL argument line (We pass the $ComputerName and $scriptDate)
+# Construct the FULL argument line (Passing $ComputerName for file naming)
 $argsLine = "-ComputerName '$ComputerName' -Date '$scriptDate'"
 if (-not [string]::IsNullOrWhiteSpace($optionalArgs)) {
     $argsLine += " $optionalArgs"
@@ -257,7 +292,7 @@ Write-Host ('Invoking on remote: {0} {1}' -f $remotePs1Path, $argsLine) -Foregro
 Invoke-Command -Session $sess -ScriptBlock {
   param($path, $argsLine)
   
-  # Set Execution Policy (still needed)
+  # Set Execution Policy (required for unsigned worker script)
   Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
   
   $command = "& `"$path`" $argsLine"
@@ -268,7 +303,8 @@ Invoke-Command -Session $sess -ScriptBlock {
 
 Write-Host 'Remote script finished.'
 
-# Step 6: Copy results back (Default: Yes) and Cleanup
+# Step 6: Copy results back and Cleanup
+
 $remoteHost = Invoke-Command -Session $sess -ScriptBlock { $env:COMPUTERNAME }
 $defaultPattern = ('{0}_*.csv' -f $remoteHost)
 
@@ -305,6 +341,6 @@ try {
   Write-Warning ('No files copied. Check that files matching {0} exist in {1}.' -f $pattern, $remoteFolder)
 }
 
-# Cleanup
+# Cleanup PSSession
 if ($sess) { Remove-PSSession -Session $sess }
 Write-Host '=== Done ===' -ForegroundColor Cyan
