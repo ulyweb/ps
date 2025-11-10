@@ -36,7 +36,7 @@ Get-ChildItem -Path "C:\Users" | Sort CreationTime -Descending | FT Name, Creati
 > ## ✅ One-liner: prompts for computer name and admin creds, then shows the results (non-interactive)
 >> ###  Paste into Win+R:
 ```` 
-powershell -c "start -verb runas powershell -args '-noe -ep bypass -c \"$c=Read-Host Computer; $cr=Get-Credential; icm -cn $c -cred $cr {gci C:\Users|sort CreationTime -desc|ft Name,CreationTime}\"'"
+powershell -c "start -verb runas powershell -args '-noe -ep bypass -c \"$c=Read-Host Computer; $cr=Get-Credential; icm -cn $c -cred $cr {gci C:\Users|sort CreationTime,lastwritetime -desc|ft Name,CreationTime,lastwritetime}\"'"
 ````
 
 
@@ -49,5 +49,5 @@ powershell -c "start -verb runas powershell -args '-noe -ep bypass -c \"$c=Read-
 
 ## Then, once you’re at the remote prompt, run:
 ````
-gci C:\Users | sort CreationTime -desc | ft Name,CreationTime
+gci C:\Users | sort CreationTime,lastwritetime  -desc | ft Name,CreationTime, lastwritetime
 ````
