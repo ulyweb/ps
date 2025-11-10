@@ -18,9 +18,7 @@ RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process pow
 ````
 Enter-PSSession
 ````
-
-> [!NOTE]
-> ## ✅ After you enter the computername of the remote machine
+c
 > ### Wait until it connect an create your profile
 > ### If the machine is active or in the network it should connect.
 > ### If not it will fail and give you error.
@@ -30,4 +28,12 @@ Enter-PSSession
 
 ````
 Get-ChildItem -Path "C:\Users" | Sort CreationTime -Descending | FT Name, CreationTime
+````
+
+
+
+> [!TIP]
+> ## ✅ Or use this single command
+````
+powershell -c "start -verb runas powershell -args '-noe -ep bypass -c \"$c=Read-Host Computer; $cr=Get-Credential; icm -cn $c -cred $cr {gci C:\Users|sort CreationTime -desc|ft Name,CreationTime}\"'"
 ````
