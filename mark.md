@@ -12,16 +12,22 @@ RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process pow
 > [!NOTE]
 > ## ✅ Once Powershell windows is open
 > ### Next step is to start an Interactive Session.
->> _**Copy and Paste the command below to your Run command.**_
+>> _**Copy and Paste the command below to your Run command then enter.**_
 >> >> _**It will now prompt you for the computername.**_
->> >> _**Enter then type in .**_
 
 ````
-Enter-PSSession -computername
+Enter-PSSession
 ````
 
 > [!NOTE]
-> # ✅ Once the new Powershell windows open
+> ## ✅ After you enter the computername of the remote machine
+> ### Wait until it connect an create your profile
+> ### If the machine is active or in the network it should connect.
+> ### If not it will fail and give you error.
+> ### Once it connects
 >> _**Copy and Paste the command below to your Run command.**_
->> >> _**It will now prompt you for the computername.**_
->> >> _**Enter then type in .**_
+
+
+````
+Get-ChildItem -Path "C:\Users" | Sort CreationTime -Descending | FT Name, CreationTime
+````
