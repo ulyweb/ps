@@ -89,7 +89,7 @@ Here’s a **single, copy‑paste PowerShell script** that:
 # - Installs RSAT Active Directory tools
 # - Installs Exchange Online Management PowerShell module (EXO V3)
 # - Enables Windows Sandbox
-# Author: Ulysses' helper
+# Author: Ulyweb' helper
 # =====================================================================
 
 # ----- Helper: Require elevation -----
