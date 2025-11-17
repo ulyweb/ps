@@ -146,5 +146,3 @@ These toggle the same Microsoft-documented values on the remote machine. (Open t
 *   **RDP won’t bypass corporate blocks**: even if you enable RDP via registry, connections will still fail if the network blocks **TCP 3389**. Use **SCCM Remote Control** (port **2701**) instead when RDP is blocked. [\[learn.microsoft.com\]](https://learn.microsoft.com/en-us/intune/configmgr/core/clients/manage/remote-control/remotely-administer-a-windows-client-computer)
 
 ***
-
-If you want, I can **tailor the scripts** for your environment (e.g., pre-fill a site server, add multilingual resources, or wrap as an **Intune Win32** app / **SCCM Application**). Do you want me to set the **default Site Server** and add a **Start Menu** launch shortcut for your desktop techs?
