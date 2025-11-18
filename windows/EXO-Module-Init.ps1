@@ -20,19 +20,20 @@ function Install-AndVerifyModule {
     # Use CurrentUser scope for installation to avoid permission issues in Codespaces environments
     $installScope = "CurrentUser"
     
-    # Determine if we should attempt installation via PSGallery
+    # Determine if we are running on Windows
     $isWindows = ($PSVersionTable.PSVersion.Platform -eq "Windows")
 
-    try {
-        # --- Special Handling for ActiveDirectory (Windows Feature) ---
-        if ($ModuleName -eq 'ActiveDirectory') {
-            if ($isWindows) {
-                Write-Host "  - ActiveDirectory is a Windows feature. Checking status..." -ForegroundColor Yellow
-                
+    # --- Special Handling for ActiveDirectory (Windows Feature) ---
+    if ($ModuleName -eq 'ActiveDirectory') {
+        if ($isWindows) {
+            Write-Host "  - ActiveDirectory is a Windows feature. Checking status..." -ForegroundColor Yellow
+            
+            # Use a Try/Catch to handle the native Windows commands gracefully
+            try {
                 # Check if the required capability is installed (ActiveDirectory DS-LDS Tools)
-                $adCapability = Get-WindowsCapability -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 -Online -ErrorAction SilentlyContinue
+                $adCapability = Get-WindowsCapability -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 -Online -ErrorAction Stop
 
-                if ($adCapability -and $adCapability.State -eq 'Installed') {
+                if ($adCapability.State -eq 'Installed') {
                     Write-Host "✅ Module '$ModuleName' is installed as an OS feature." -ForegroundColor Green
                 } else {
                     Write-Host "  - Installing ActiveDirectory tools via Add-WindowsCapability..." -ForegroundColor Cyan
@@ -40,14 +41,20 @@ function Install-AndVerifyModule {
                     Add-WindowsCapability -Online -Name Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0 -ErrorAction Stop
                     Write-Host "✅ Module '$ModuleName' installed successfully as an OS feature." -ForegroundColor Green
                 }
-            } else {
-                Write-Host "ℹ️ Module '$ModuleName' is not installable on this Linux/Codespaces platform." -ForegroundColor DarkYellow
+            } catch {
+                Write-Host "❌ Warning: Could not process ActiveDirectory feature. Reason: $($_.Exception.Message)" -ForegroundColor Red
             }
-            return # Exit function for ActiveDirectory
+        } else {
+            Write-Host "ℹ️ Module '$ModuleName' is not installable on this Linux/Codespaces platform." -ForegroundColor DarkYellow
         }
+        Write-Host "----------------------------------------------------"
+        return # Exit function only for ActiveDirectory block
+    }
 
-        # --- Standard PSGallery Modules (ExchangeOnlineManagement, etc.) ---
-        
+
+    # --- Standard PSGallery Modules (ExchangeOnlineManagement, etc.) ---
+    
+    try {
         if (-not (Get-Module -Name $ModuleName -ListAvailable)) {
             Write-Host "  - Module '$ModuleName' is NOT installed. Installing now..." -ForegroundColor Red
             
