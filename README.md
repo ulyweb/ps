@@ -369,6 +369,12 @@ powershell irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scrip
 >[!TIP]
 >This identifies and display which application actively running
 
+### RunAs Automatically
+````
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/windows/ActiveApplications.ps1 | iex\"' -Verb RunAs"
+````
+
+### Manual run
 ````
 $UserApplications = Get-Process -ErrorAction SilentlyContinue | Where-Object {
     $_.MainWindowHandle -ne 0 -and $_.ProcessName -notin $CriticalExclusionList
