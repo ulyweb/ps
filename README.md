@@ -373,6 +373,7 @@ powershell irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scrip
 $UserApplications = Get-Process -ErrorAction SilentlyContinue | Where-Object {
     $_.MainWindowHandle -ne 0 -and $_.ProcessName -notin $CriticalExclusionList
 }
-$UserApplication
+$UserApplications
+
 ````
 
