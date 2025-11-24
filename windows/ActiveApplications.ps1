@@ -14,3 +14,4 @@ $UsersActiveApplications = Get-Process -ErrorAction SilentlyContinue | Where-Obj
 }
 
 $UsersActiveApplications
+Pause
