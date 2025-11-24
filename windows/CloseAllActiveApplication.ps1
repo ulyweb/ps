@@ -14,6 +14,17 @@
     using the Windows Task Scheduler, with the 'highest privileges' option enabled.
 #>
 
+# Check if running as Administrator
+$CurrentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
+$Principal = New-Object Security.Principal.WindowsPrincipal $CurrentUser
+$IsAdmin = $Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $IsAdmin) {
+    Write-Host "This script must be run as an Administrator. Restarting with elevated privileges..."
+    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    exit
+}
+
 # --- Configuration (Exclusions) ---
 # 1. Define processes that should NEVER be terminated, even if they have a main window.
 #    Explorer is the Windows Desktop Shell/Taskbar. TaskMgr is the Task Manager.
