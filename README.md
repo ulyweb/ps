@@ -364,3 +364,15 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 ````
 powershell irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/run-startup-script.bat | cmd
 ````
+
+
+>[!TIP]
+>This identifies and display which application actively running
+
+````
+$UserApplications = Get-Process -ErrorAction SilentlyContinue | Where-Object {
+    $_.MainWindowHandle -ne 0 -and $_.ProcessName -notin $CriticalExclusionList
+}
+$UserApplication
+````
+
