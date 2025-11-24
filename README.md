@@ -386,5 +386,5 @@ $UserApplications
 >[!TIP]
 >This will force close all actively applications
 ````
-powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/toolz/Force-Close-All-Applications.ps1"' -Verb RunAs"
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/windows/CloseAllActiveApplication.ps1"' -Verb RunAs"
 ````
