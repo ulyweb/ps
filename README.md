@@ -388,3 +388,10 @@ $UserApplications
 ````
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/windows/CloseAllActiveApplication.ps1" | iex"' -Verb RunAs"
 ````
+
+
+>[!TIP]
+>Simple Remote / Run / Fetch with streamlined prompts.
+````
+powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/toolz/working-get-removeINFO.ps1 | iex\"' -Verb RunAs"
+````
