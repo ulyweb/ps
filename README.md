@@ -21,6 +21,17 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/get_fb.ps1 | iex
 ````
 
+
+
+>[!TIP]
+>Open CMD command line:
+````
+RunAs /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell \"Start-Process powershell \" -Verb RunAs"
+````
+
+
+
+
 > #### QR Code generator
 ```
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/qrcodemenu.ps1 | iex\"' -Verb RunAs"
