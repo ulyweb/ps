@@ -11,6 +11,12 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 irm "https://christitus.com/win" | iex
 ````
 
+> > **Runs as A-Account, Open CMD as Admin, then paste the command below:**
+````
+runas /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell.exe -NoProfile -Command Start-Process PowerShell -ArgumentList '-NoProfile' -Verb RunAs"
+````
+
+
 > > > #### FileBrowser Installer Script then execute it!
 ```
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"iwr -useb https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scripts/get_fb.ps1 | iex\"' -Verb RunAs"
