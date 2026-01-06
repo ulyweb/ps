@@ -16,6 +16,12 @@ irm "https://christitus.com/win" | iex
 runas /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell.exe -NoProfile -Command Start-Process PowerShell -ArgumentList '-NoProfile' -Verb RunAs"
 ````
 
+> > **Runs as A-Account, Open Terminal as Admin, then paste the command below:**
+````
+runas /noprofile /user:$env:USERDOMAIN\a-$env:USERNAME "powershell.exe -NoProfile -Command Start-Process PowerShell -ArgumentList '-NoProfile' -Verb RunAs"
+````
+
+
 
 > > > #### FileBrowser Installer Script then execute it!
 ```
