@@ -390,7 +390,8 @@ powershell irm https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/scrip
 
 
 >[!TIP]
->This identifies and display which application actively running
+> ## This identifies and display which application actively running
+>> 
 
 ### RunAs Automatically
 ````
@@ -407,7 +408,8 @@ $UserApplications
 ````
 
 >[!TIP]
->This will force close all actively applications
+> ## Force Close All Active Applications
+>> This will force close all actively applications
 ````
 powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command \"irm "https://raw.githubusercontent.com/ulyweb/ps/refs/heads/main/windows/CloseAllActiveApplication.ps1" | iex"' -Verb RunAs"
 ````
