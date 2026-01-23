@@ -11,7 +11,10 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 irm "https://christitus.com/win" | iex
 ````
 
-> > **Runs as A-Account, Open CMD as Admin, then paste the command below:**
+> [!NOTE]
+> # Runs as A-Account from Win+R
+
+>> **Runs PowerShell as Admin from Run (Win+R)**
 ````
 runas /noprofile /user:%USERDOMAIN%\a-%USERNAME% "powershell.exe -NoProfile -Command Start-Process PowerShell -ArgumentList '-NoProfile' -Verb RunAs"
 ````
