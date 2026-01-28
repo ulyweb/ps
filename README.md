@@ -430,3 +430,12 @@ powershell -Command "Start-Process powershell -ArgumentList '-NoProfile -Executi
 ````
 powershell -Command "Start-Process powershell -Verb RunAs -ArgumentList '-NoExit -NoProfile -ExecutionPolicy Bypass -Command & ([scriptblock]::Create((irm \"https://raw.githubusercontent.com/zoicware/RemoveWindowsAI/main/RemoveWindowsAi.ps1\"))) -nonInteractive -backupMode -AllOptions'"
 ````
+
+
+
+>[!TIP]
+> ## To run powershell with ExecutionPolicy Bypass
+>> 
+````
+ PowerShell -ExecutionPolicy Bypass -File .\Run-XeroxDuplicatesReport.ps1 
+````
