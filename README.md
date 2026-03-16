@@ -439,3 +439,147 @@ powershell -Command "Start-Process powershell -Verb RunAs -ArgumentList '-NoExit
 ````
  PowerShell -ExecutionPolicy Bypass -File .\Run-XeroxDuplicatesReport.ps1 
 ````
+
+
+
+
+
+
+>[!TIP]
+> ## `SessionUptime` function + `sut` alias.
+>>I’ll make it **safe** (doesn’t break an existing custom prompt) and **profile‑ready** so it’s there every time you open PowerShell.
+
+***
+
+## 🔧 What you’ll get
+
+*   **Function**: `SessionUptime` — prints a clean, human‑friendly line
+*   **Alias**: `sut` — quick shortcut to `SessionUptime`
+*   **Prompt hook**: prepends `[⏱ 1h 7m 12s]` to your existing prompt, updating every keystroke
+*   **Safe**: preserves your original prompt behavior if you already customized it
+
+***
+
+## 📄 Paste this into your PowerShell profile
+
+> Open/edit your profile:
+
+```powershell
+New-Item -ItemType File -Path $PROFILE -Force | Out-Null
+notepad $PROFILE
+```
+
+> Then paste the block below and save:
+
+```powershell
+# --- Session Uptime + Prompt Integration ---
+
+# Cache the PowerShell session start time once
+if (-not $script:SessionStartTime) {
+    try {
+        $script:SessionStartTime = (Get-Process -Id $PID -ErrorAction Stop).StartTime
+    } catch {
+        # Fallback to now if process start time isn't available (rare)
+        $script:SessionStartTime = Get-Date
+    }
+}
+
+function SessionUptime {
+    [CmdletBinding()]
+    param()
+
+    # Ensure the alias exists (useful when pasted ad-hoc)
+    if (-not (Get-Alias -Name sut -ErrorAction SilentlyContinue)) {
+        try { Set-Alias -Name sut -Value SessionUptime -Scope Global -ErrorAction Stop } catch {}
+    }
+
+    $uptime = New-TimeSpan -Start $script:SessionStartTime -End (Get-Date)
+
+    # Build compact parts
+    $parts = @()
+    if ($uptime.Days    -gt 0) { $parts += "$($uptime.Days)d" }
+    if ($uptime.Hours   -gt 0) { $parts += "$($uptime.Hours)h" }
+    if ($uptime.Minutes -gt 0) { $parts += "$($uptime.Minutes)m" }
+    # Always show seconds
+    $parts += "$($uptime.Seconds)s"
+
+    "Session uptime: {0} (started {1})" -f ($parts -join ' '), $script:SessionStartTime
+}
+
+# Make alias available immediately on startup
+try { Set-Alias -Name sut -Value SessionUptime -Scope Global -ErrorAction Stop } catch {}
+
+# ---- Prompt wiring (prepend uptime safely) ----
+# If there's already a prompt() function, keep it and wrap it
+if (-not $script:OriginalPrompt) {
+    $script:OriginalPrompt = (Get-Command prompt -ErrorAction SilentlyContinue).ScriptBlock
+}
+
+function global:prompt {
+    # Compute uptime text for the left side of the prompt
+    $uptime = New-TimeSpan -Start $script:SessionStartTime -End (Get-Date)
+    $p = @()
+    if ($uptime.Days    -gt 0) { $p += "$($uptime.Days)d" }
+    if ($uptime.Hours   -gt 0) { $p += "$($uptime.Hours)h" }
+    if ($uptime.Minutes -gt 0) { $p += "$($uptime.Minutes)m" }
+    $p += "$($uptime.Seconds)s"
+    $uptxt = "[⏱ $($p -join ' ')] "
+
+    if ($script:OriginalPrompt) {
+        # Call your original prompt and prepend uptime
+        $orig = & $script:OriginalPrompt
+        return "$uptxt$orig"
+    } else {
+        # Reasonable default prompt if none existed
+        $loc = $executionContext.SessionState.Path.CurrentLocation
+        return "$uptxtPS $loc> "
+    }
+}
+# --- End Session Uptime + Prompt Integration ---
+```
+
+> Open a **new** PowerShell window/tab (or run `.& $PROFILE`) to load it.
+
+***
+
+## ▶️ Quick usage
+
+```powershell
+# Print a one-liner with start time
+SessionUptime
+# or shorter
+sut
+```
+
+Your prompt will look something like:
+
+    [⏱ 1h 12m 5s] PS C:\>
+
+***
+
+## 🧪 Optional tweaks (drop these anywhere **after** the block)
+
+*   **Change the stopwatch icon or format**
+    *   Replace `"[⏱ $($p -join ' ')] "` with e.g. `"[UP $($p -join ':') ] "` or just `"$($p -join ' ') "`.
+*   **Show milliseconds (noisy but possible)**
+    *   Append `"$([int]$uptime.Milliseconds)ms"` to `$p`.
+*   **Always show `0h` and `0m`**  
+    Replace the conditional additions with fixed parts:
+    ```powershell
+    $p = @("{0}d" -f $uptime.Days; "{0}h" -f $uptime.Hours; "{0}m" -f $uptime.Minutes; "{0}s" -f $uptime.Seconds)
+    ```
+
+***
+
+## ♻️ Revert / remove
+
+*   To **remove** uptime from your prompt temporarily:
+    ```powershell
+    Remove-Item Function:\prompt
+    if ($script:OriginalPrompt) { Set-Item Function:\prompt $script:OriginalPrompt }
+    ```
+*   To **permanently** remove, open your profile (`notepad $PROFILE`) and delete the block.
+
+***
+
+
