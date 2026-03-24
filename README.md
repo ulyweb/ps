@@ -607,3 +607,45 @@ Copy and paste this into your PowerShell window and press Enter:
 ````
 powershell -Command "Start-Process powershell -Verb RunAs -ArgumentList '-Command powercfg /hibernate on; New-Item -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings -Force; Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings -Name ShowHibernateOption -Value 1 -Type DWord; Write-Host ''Hibernate added to Power Menu!'' -Fore Green; Start-Sleep -s 3'"
 ````
+
+# Windows Reboot and Update Event Query Script
+````
+# Windows Reboot and Update Event Query Script
+# Purpose: Gathers shutdown, startup, and update events to diagnose reboot reasons.
+
+$EventLogName = "System"
+$EventIDs = @(12, 19, 20, 21, 41, 1001, 1074, 6005, 6006, 6008)
+
+# 1. Ensure the destination folder exists
+$ExportPath = "C:\temp"
+if (-not (Test-Path -Path $ExportPath)) {
+    New-Item -ItemType Directory -Path $ExportPath -Force | Out-Null
+}
+
+# 2. Generate the dynamic filename
+$ComputerName = $env:COMPUTERNAME
+$Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$FileName = "RebootReport_${ComputerName}_${Timestamp}.csv"
+$FullPath = Join-Path -Path $ExportPath -ChildPath $FileName
+
+# 3. Query the event logs
+# We use FilterHashtable because it queries the Windows Event Log significantly faster than standard filtering.
+$Events = Get-WinEvent -FilterHashtable @{LogName=$EventLogName; Id=$EventIDs} -ErrorAction SilentlyContinue
+
+# 4. Create a custom object for each event to format the report neatly
+$Report = foreach ($Event in $Events) {
+    [PSCustomObject]@{
+        TimeCreated = $Event.TimeCreated
+        EventID     = $Event.Id
+        Provider    = $Event.ProviderName
+        # Trimming the message to remove excessive blank lines for cleaner reading
+        Message     = $Event.Message.Trim() -replace '[\r\n]+', ' | ' 
+    }
+}
+
+# 5. Output to CSV and display in GridView simultaneously
+$Report | Export-Csv -Path $FullPath -NoTypeInformation
+$Report | Out-GridView -Title "Windows Reboot & Update Event Report"
+
+Write-Host "Report successfully saved to: $FullPath" -ForegroundColor Green
+````
