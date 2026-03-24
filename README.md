@@ -582,4 +582,22 @@ Your prompt will look something like:
 
 ***
 
+## PowerShell One-Liner (Self-Elevating) 
+>#Copy and paste this into any PowerShell window. It will trigger a UAC (Admin) prompt, execute the settings for both the Lid Close and Power Button (on battery), and then reboot.
 
+````
+powershell -Command "Start-Process powershell -Verb RunAs -ArgumentList '-Command powercfg /hibernate on; powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 2; powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e38-b015-93c5428a3b0c 2; powercfg -SetActive SCHEME_CURRENT; Write-Host ''Settings applied. Rebooting...'' -Fore Green; Restart-Computer'"
+````
+
+PowerShell Function
+If you want to save this to your session to use later, you can define it as a function:
+````
+function Set-DellHibernate {
+    $cmd = "powercfg /hibernate on; " +
+           "powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 2; " +
+           "powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e38-b015-93c5428a3b0c 2; " +
+           "powercfg -SetActive SCHEME_CURRENT; Restart-Computer"
+    
+    Start-Process powershell -Verb RunAs -ArgumentList "-Command $cmd"
+}
+````
