@@ -583,7 +583,7 @@ Your prompt will look something like:
 ***
 
 ## PowerShell One-Liner (Self-Elevating) 
->#Copy and paste this into any PowerShell window. It will trigger a UAC (Admin) prompt, execute the settings for both the Lid Close and Power Button (on battery), and then reboot.
+>Copy and paste this into any PowerShell window. It will trigger a UAC (Admin) prompt, execute the settings for both the Lid Close and Power Button (on battery), and then reboot.
 
 ````
 powershell -Command "Start-Process powershell -Verb RunAs -ArgumentList '-Command powercfg /hibernate on; powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 2; powercfg -setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e38-b015-93c5428a3b0c 2; powercfg -SetActive SCHEME_CURRENT; Write-Host ''Settings applied. Rebooting...'' -Fore Green; Restart-Computer'"
@@ -600,4 +600,10 @@ function Set-DellHibernate {
     
     Start-Process powershell -Verb RunAs -ArgumentList "-Command $cmd"
 }
+````
+
+PowerShell One-Liner to Show Hibernate in Start Menu
+Copy and paste this into your PowerShell window and press Enter: 
+````
+powershell -Command "Start-Process powershell -Verb RunAs -ArgumentList '-Command powercfg /hibernate on; New-Item -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings -Force; Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings -Name ShowHibernateOption -Value 1 -Type DWord; Write-Host ''Hibernate added to Power Menu!'' -Fore Green; Start-Sleep -s 3'"
 ````
