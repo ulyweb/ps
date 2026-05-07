@@ -1,4 +1,4 @@
-# Enterprise IT Manage & Monitor Dashboard
+# IT Manage & Monitor Dashboard
 
 A standalone, offline-capable PowerShell deployment tool that provisions a rich Single Page Application (SPA) web dashboard for real-time Windows system telemetry, process management, and forensic event capture.
 
