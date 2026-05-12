@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>IT HealthCheck - Event Log Dashboard (Offline)</title>
+<style>
+  :root{
+    --bg:#0b0e11;
+    --panel:rgba(17,24,39,0.96);
+    --panel2:rgba(15,23,42,0.90);
+    --text:#e6d8a8;
+    --muted:#cbd5e1;
+    --muted2:#94a3b8;
+    --muted3:#64748b;
+    --gold:#c9a84c;
+    --gold2:#d4af37;
+    --good:#10b981;
+    --warn:#f59e0b;
+    --bad:#ef4444;
+    --line:rgba(201,168,76,0.18);
+    --line2:rgba(148,163,184,0.18);
+    --radius:14px;
+  }
+
+  @keyframes fadeSlideIn { from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes leftSlideIn { from{opacity:0; transform:translateX(-14px);} to{opacity:1; transform:translateX(0);} }
+  @keyframes pulseIn { 0%{transform:scale(.94);opacity:.6;} 60%{transform:scale(1.06);opacity:1;} 100%{transform:scale(1);} }
+  @keyframes overlayFadeOut { from{opacity:1;} to{opacity:0;} }
+
+  html, body { height:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  /* Overlay */
+  .overlay{
+    position:fixed; inset:0; z-index:99999;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+    background:
+      radial-gradient(1000px 500px at 50% 10%, rgba(201,168,76,0.16), rgba(0,0,0,0) 60%),
+      linear-gradient(180deg, #0a0e1a 0%, #10172a 50%, #1a1f35 100%);
+    transition: opacity .4s ease;
+  }
+  .overlay::before{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(255,255,255,0.18) 0 2px, transparent 3px),
+      radial-gradient(circle at 78% 22%, rgba(255,255,255,0.14) 0 2px, transparent 3px),
+      radial-gradient(circle at 55% 12%, rgba(255,255,255,0.10) 0 1px, transparent 2px),
+      radial-gradient(circle at 18% 72%, rgba(255,255,255,0.12) 0 2px, transparent 3px),
+      radial-gradient(circle at 86% 74%, rgba(255,255,255,0.10) 0 2px, transparent 3px),
+      radial-gradient(circle at 42% 84%, rgba(255,255,255,0.08) 0 1px, transparent 2px);
+    opacity:.75;
+    pointer-events:none;
+  }
+  .overlayContent{
+    position:relative;
+    text-align:center;
+    padding:40px 26px;
+    max-width:900px;
+    z-index:1;
+  }
+  .shieldWrap{
+    display:flex; justify-content:center;
+    margin-bottom:22px;
+    filter: drop-shadow(0 0 30px rgba(201,168,76,0.55));
+  }
+  .title{
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(44px, 5.2vw, 74px);
+    line-height:1.05;
+    margin:0;
+    color:#f5f0e8;
+  }
+  .subtitle{
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(28px, 3.2vw, 44px);
+    margin:10px 0 0 0;
+    color:var(--gold);
+    font-style:italic;
+  }
+  .ribbon{
+    margin:18px auto 16px;
+    display:inline-block;
+    padding:10px 16px;
+    border:1px solid rgba(201,168,76,0.35);
+    border-radius:999px;
+    color:var(--gold);
+    font-family: Consolas, "Courier New", monospace;
+    font-size:11px;
+    letter-spacing:0.30em;
+    text-transform:uppercase;
+    background: rgba(10,14,26,0.35);
+  }
+  .overlayP{
+    margin:0 auto 26px;
+    max-width:760px;
+    font-size:17px;
+    color:#8892b0;
+    line-height:1.6;
+  }
+  .cta{
+    display:inline-flex; align-items:center; gap:14px;
+    cursor:pointer; user-select:none;
+    border:0;
+    padding:20px 62px;
+    border-radius:999px;
+    font-weight:900;
+    color:#0a0e1a;
+    background: linear-gradient(180deg, #c9a84c 0%, #a8843a 100%);
+    box-shadow: 0 12px 40px rgba(201,168,76,0.28), 0 0 24px rgba(201,168,76,0.25);
+    font-size:18px;
+  }
+  .timeBadge{
+    position:absolute; top:18px; right:18px;
+    padding:8px 12px;
+    border-radius:999px;
+    border:1px solid rgba(201,168,76,0.55);
+    color:var(--gold);
+    font-family: Consolas, "Courier New", monospace;
+    font-size:12px;
+    background: rgba(10,14,26,0.35);
+    z-index:2;
+  }
+  .overlay.hide{ animation: overlayFadeOut .4s ease forwards; pointer-events:none; }
+
+  /* Header */
+  .headerBar{
+    width:100%;
+    background: var(--panel2);
+    border-bottom: 1px solid rgba(201,168,76,0.25);
+    padding: 20px 34px;
+    display:flex; align-items:center; justify-content:space-between;
+    box-sizing:border-box;
+    position:sticky; top:0; z-index:999;
+    backdrop-filter: blur(8px);
+  }
+  .headerLeft{ display:flex; align-items:center; gap:14px; }
+  .headerTitle{
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 800;
+    font-size: 18px;
+    color:#f5f0e8;
+  }
+  .headerRight{
+    text-align:right;
+    color:var(--muted);
+    font-size:12px;
+    font-family: Consolas, "Courier New", monospace;
+    line-height:1.35;
+  }
+
+  /* Layout */
+  .container{ max-width:1200px; margin:0 auto; padding:28px 34px; }
+  .sectionTitle{
+    margin: 26px 0 14px 0;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--gold);
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: leftSlideIn .55s ease both;
+  }
+
+  /* Cards */
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--gold);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    opacity:0;
+    transform: translateY(18px);
+    animation: fadeSlideIn .65s ease forwards;
+    animation-delay: var(--d, 0s);
+  }
+  .card:hover{
+    border-color: rgba(212,175,55,0.55);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.34);
+  }
+  .cardHead{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin-bottom:14px; cursor:pointer;
+  }
+  .cardHeading{
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gold);
+    margin:0;
+  }
+  .cardToggle{
+    color: var(--muted2);
+    font-size:12px;
+    user-select:none;
+    font-family: Consolas, "Courier New", monospace;
+  }
+  .cardBody{ font-size:14px; line-height:1.7; color: var(--muted); }
+  .collapsed .cardBody{ display:none; }
+
+  .smallNote{
+    color: var(--muted2);
+    font-size:12px;
+    font-family: Consolas, "Courier New", monospace;
+  }
+
+  /* Controls */
+  .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  @media (max-width: 900px){ .grid2{ grid-template-columns:1fr; } }
+  .controlLabel{
+    display:block;
+    margin-bottom:6px;
+    color:var(--muted2);
+    font-size:12px;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+  }
+  select, input[type="text"], input[type="number"], textarea{
+    width:100%;
+    box-sizing:border-box;
+    background:#0b1220;
+    border:1px solid rgba(148,163,184,0.28);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:10px;
+    outline:none;
+    font-family: Consolas, "Courier New", monospace;
+  }
+  textarea{ min-height: 220px; resize: vertical; }
+  input[type="file"]{
+    width:100%;
+    box-sizing:border-box;
+    padding:12px 12px;
+    border-radius:12px;
+    border:1px solid rgba(201,168,76,0.22);
+    background: rgba(15,23,42,0.55);
+    color:var(--text);
+  }
+  .actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+  .btn{
+    border:0; cursor:pointer; user-select:none;
+    padding: 12px 16px;
+    border-radius: 999px;
+    font-weight: 900;
+    letter-spacing:0.3px;
+  }
+  .btnPrimary{
+    color:#0a0e1a;
+    background: linear-gradient(180deg, #c9a84c 0%, #a8843a 100%);
+    box-shadow: 0 10px 24px rgba(201,168,76,0.18);
+  }
+  .btnGhost{
+    color: var(--text);
+    background: rgba(15,23,42,0.55);
+    border:1px solid rgba(201,168,76,0.22);
+  }
+  .btnDanger{
+    color: #ffe6e6;
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.30);
+  }
+
+  /* Chips */
+  .chipRow{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  .chip{
+    border: 1px solid rgba(201,168,76,0.28);
+    background: rgba(10,14,26,0.35);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    cursor: pointer;
+    user-select:none;
+  }
+  .chip:hover{ border-color: rgba(212,175,55,0.55); }
+
+  /* Severity */
+  .sev{
+    display:inline-block;
+    border-radius:8px;
+    padding:4px 10px;
+    font-weight:800;
+    font-size:11px;
+    border:1px solid transparent;
+    letter-spacing:0.2px;
+  }
+  .sev.good{ background: rgba(16,185,129,0.10); color: var(--good); border-color: rgba(16,185,129,0.28); }
+  .sev.warn{ background: rgba(245,158,11,0.10); color: var(--warn); border-color: rgba(245,158,11,0.28); }
+  .sev.bad{  background: rgba(239,68,68,0.10); color: var(--bad);  border-color: rgba(239,68,68,0.28); }
+
+  /* Tiles */
+  .tileGrid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+  .tile{
+    background: rgba(17,24,39,0.88);
+    border: 1px solid rgba(201,168,76,0.18);
+    border-radius: 14px;
+    padding: 16px;
+    opacity:0;
+    transform: translateY(18px);
+    animation: fadeSlideIn .65s ease forwards;
+    animation-delay: var(--d, 0s);
+  }
+  .metric{
+    font-size: 28px;
+    font-weight: 900;
+    margin:0;
+    animation: pulseIn .55s ease both;
+  }
+  .label{
+    margin-top:6px;
+    font-size:12px;
+    color: var(--muted2);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  /* Table */
+  table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    overflow:hidden;
+    border:1px solid rgba(148,163,184,0.18);
+    border-radius:14px;
+    background: rgba(2,6,23,0.35);
+  }
+  th, td{
+    text-align:left;
+    padding:10px 12px;
+    vertical-align:top;
+    border-bottom:1px solid rgba(148,163,184,0.12);
+    font-size:12px;
+    color:#e2e8f0;
+  }
+  th{
+    position:sticky;
+    top:0;
+    background: rgba(15,23,42,0.90);
+    color:#f8fafc;
+    z-index:2;
+    font-family: Georgia, "Times New Roman", serif;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    font-size:12px;
+  }
+  tr:hover td{ background: rgba(201,168,76,0.06); }
+
+  pre{
+    margin:0;
+    padding:14px 16px;
+    border-radius: 14px;
+    background: rgba(2,6,23,0.72);
+    border: 1px solid rgba(148,163,184,0.18);
+    color: #e2e8f0;
+    overflow:auto;
+    font-size: 12px;
+    line-height:1.55;
+  }
+
+  .footer{
+    text-align:center;
+    color: var(--muted3);
+    font-size:12px;
+    margin-top:40px;
+    line-height:1.55;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="timeBadge" id="timeBadge">--/--/---- --:--:--</div>
+  <div class="overlayContent">
+    <div class="shieldWrap" aria-hidden="true">
+      <svg width="86" height="96" viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32 2C32 2 46 10 58 10V34C58 52 46 64 32 70C18 64 6 52 6 34V10C18 10 32 2 32 2Z"
+              stroke="#c9a84c" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M20 36L28 44L45 27"
+              stroke="#c9a84c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h1 class="title">IT HealthCheck</h1>
+    <h2 class="subtitle">Diagnostic Guide</h2>
+
+    <div class="ribbon">IT HEALTHCHECK * GUIDED ANALYSIS * SAFE SELF-HEALING</div>
+
+    <p class="overlayP">
+      Offline Event Log dashboard: export filtered events from Event Viewer as XML, import here, and generate an evidence-based diagnostic view.
+      New: Scenario click can auto-download a prefilled Assisted Export PS1. New: ITSM-ready notes export after analysis.
+    </p>
+
+    <button class="cta" id="beginBtn" type="button">I'm Ready to Begin <span style="font-weight:900;">→</span></button>
+    <div class="smallNote" style="margin-top:12px;" id="jsStatus">JavaScript status: <span class="sev warn">checking…</span></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="headerBar">
+  <div class="headerLeft">
+    <svg width="34" height="40" viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M32 2C32 2 46 10 58 10V34C58 52 46 64 32 70C18 64 6 52 6 34V10C18 10 32 2 32 2Z"
+            stroke="#c9a84c" stroke-width="2.8" stroke-linejoin="round"/>
+      <path d="M20 36L28 44L45 27"
+            stroke="#c9a84c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="headerTitle">IT HealthCheck Event Log Dashboard (Offline)</div>
+  </div>
+  <div class="headerRight">
+    <div><span style="color:#f5f0e8;font-weight:800;">Generated:</span> <span id="hdrGen">N/A</span></div>
+    <div><span style="color:#f5f0e8;font-weight:800;">Import:</span> XML (preferred) / JSON (optional) | <span style="color:#f5f0e8;font-weight:800;">ITSM:</span> Export supported</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Collection Guide -->
+  <div class="sectionTitle">Collection Guide</div>
+  <div class="card" style="--d:.05s">
+    <div class="cardHead" data-toggle="card">
+      <h3 class="cardHeading">Export Filtered Events from Event Viewer (XML)</h3>
+      <div class="cardToggle">click to collapse/expand</div>
+    </div>
+    <div class="cardBody">
+      <ol style="margin:0 0 0 18px; padding:0;">
+        <li><b>Open Event Viewer:</b> Windows key → type <b>Event Viewer</b> → Enter.</li>
+        <li><b>Choose a log:</b> Windows Logs → Application / System / Security / Setup.</li>
+        <li><b>Filter:</b> Right pane → <b>Filter Current Log…</b> → enter Event IDs (example: <b>1000,1002</b> or <b>37,41,6008</b>).</li>
+        <li><b>Time window (recommended):</b> Logged → Last 24 hours / Last 7 days.</li>
+        <li><b>Export:</b> Right-click the log → <b>Save Filtered Log File As…</b> → select <b>XML</b> → save.</li>
+        <li><b>Import here:</b> Use the Import card below, then click <b>Generate Analysis</b>.</li>
+      </ol>
+      <div style="margin-top:12px;">
+        <span class="sev good">Safe</span>
+        <span class="sev good">Read-only</span>
+        <span class="sev warn">Browser cannot query logs directly</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario Picker -->
+  <div class="sectionTitle">Quick Scenario Picker (B: Auto-download export on click)</div>
+  <div class="card" style="--d:.10s">
+    <div class="cardHead" data-toggle="card">
+      <h3 class="cardHeading">Click a scenario to auto-fill filters and (optionally) auto-download Assisted Export PS1</h3>
+      <div class="cardToggle">click to collapse/expand</div>
+    </div>
+    <div class="cardBody">
+      <div class="grid2">
+        <div>
+          <div class="smallNote">
+            Scenario click does:
+            <b>(1)</b> fills Event ID filter,
+            <b>(2)</b> updates PS builder values,
+            <b>(3)</b> optionally downloads Assisted Export PS1 immediately (toggle).
+          </div>
+        </div>
+        <div>
+          <label class="smallNote" style="display:flex; gap:10px; align-items:center;">
+            <input type="checkbox" id="autoDownload" checked style="transform:scale(1.2);">
+            <span><b>Auto-download Assisted Export PS1 on scenario click</b> (Recommended)</span>
+          </label>
+          <div class="smallNote" id="autoDownloadNote" style="margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <div class="chipRow" id="scenarioChips"></div>
+      <div class="smallNote" style="margin-top:10px;" id="scenarioHint"></div>
+    </div>
+  </div>
+
+  <!-- Import -->
+  <div class="sectionTitle">Import Data</div>
+  <div class="card" style="--d:.15s">
+    <div class="cardHead" data-toggle="card">
+      <h3 class="cardHeading">Load Event Viewer XML (preferred) / JSON (optional)</h3>
+      <div class="cardToggle">click to collapse/expand</div>
+    </div>
+    <div class="cardBody">
+      <div class="grid2">
+        <div>
+          <div class="controlLabel">XML file (Event Viewer export)</div>
+          <input type="file" id="xmlPick" accept=".xml"/>
+        </div>
+        <div>
+          <div class="controlLabel">JSON file (assisted export)</div>
+          <input type="file" id="jsonPick" accept=".json"/>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btnPrimary" id="btnLoadXml">Load XML</button>
+        <button class="btn btnPrimary" id="btnLoadJson">Load JSON</button>
+        <button class="btn btnPrimary" id="btnAnalyze">Generate Analysis + ITSM Notes</button>
+        <button class="btn btnDanger" id="btnReset">Clear</button>
+      </div>
+
+      <div class="smallNote" id="metaLine" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- Summary Tiles -->
+  <div class="sectionTitle">Snapshot Metrics</div>
+  <div class="card" style="--d:.20s">
+    <div class="cardHead" data-toggle="card">
+      <h3 class="cardHeading">Summary</h3>
+      <div class="cardToggle">click to collapse/expand</div>
+    </div>
+    <div class="cardBody">
+      <div class="tileGrid" id="summaryTiles">
+        <div class="smallNote">Load XML/JSON to populate.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analysis Cards -->
+  <div class="sectionTitle">Diagnostic Analysis</div>
+  <div id="analysisCards"></div>
+
+  <!-- ITSM Export (D) -->
+  <div class="sectionTitle">ITSM Export (D: ServiceNow-ready work notes)</div>
+  <div class="card" style="--d:.30s">
+    <div class="cardHead" data-toggle="card">
+      <h3 class="cardHeading">Generated ITSM Notes (auto-filled after Generate Analysis)</h3>
+      <div class="cardToggle">click to collapse/expand</div>
+    </div>
+    <div class="cardBody">
+      <div class="smallNote">
+        This section produces audit-ready notes: Category, Subject, Business Impact, Description, Work Notes, and a user-facing message.
+      </div>
+      <div style="margin-top:12px;">
+        <textarea id="itsmText" placeholder="Click “Generate Analysis + ITSM Notes” after loading XML/JSON to populate this field."></textarea>
+      </div>
+      <div class="actions">
+        <button class="btn btnPrimary" id="btnCopyITSM">Copy ITSM Notes</button>
+        <button class="btn btnGhost" id="btnDownloadITSM">Download ITSM Notes (.txt)</button>
+      </div>
+      <div class="smallNote" id="itsmStatus" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="sectionTitle">Event Table</div>
+  <div class="card" style="--d:.35s">
+    <div class="cardHead" data-toggle="card">
+      <h3 class="cardHeading">Search & Filter</h3>
+      <div class="cardToggle">click to collapse/expand</div>
+    </div>
+    <div class="cardBody">
+      <div class="grid2">
+        <div>
+          <div class="controlLabel">Search (provider/message)</div>
+          <input type="text" id="searchBox" placeholder="Type to filter results..."/>
+        </div>
+        <div>
+          <div class="controlLabel">Level filter</div>
+          <select id="levelFilter">
+            <option value="ALL" selected>ALL</option>
+            <option value="Critical">Critical</option>
+            <option value="Error">Error</option>
+            <option value="Warning">Warning</option>
+            <option value="Information">Information</option>
+            <option value="Verbose">Verbose</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:12px;">
+        <div>
+          <div class="controlLabel">Event ID filter (comma-separated)</div>
+          <input type="text" id="idFilter" placeholder="Example: 1000 or 37,41,6008"/>
+        </div>
+        <div>
+          <div class="controlLabel">Provider filter</div>
+          <input type="text" id="providerFilter" placeholder="Example: Kernel-Power, Application Error"/>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; max-height:520px; overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:160px;">TimeCreated</th>
+              <th style="min-width:220px;">ProviderName</th>
+              <th style="min-width:70px;">ID</th>
+              <th style="min-width:120px;">Level</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody">
+            <tr><td colspan="5" class="smallNote">No events loaded yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Optional PowerShell Builder -->
+  <div class="sectionTitle">Optional PowerShell Builder (supports multiple IDs)</div>
+  <div class="card" style="--d:.40s">
+    <div class="cardHead" data-toggle="card">
+      <h3 class="cardHeading">Get-WinEvent (manual command + assisted JSON export)</h3>
+      <div class="cardToggle">click to collapse/expand</div>
+    </div>
+    <div class="cardBody">
+      <div class="smallNote">
+        This builder supports <b>multiple Event IDs</b> (comma-separated). Assisted export writes JSON to Desktop for import.
+      </div>
+
+      <div class="grid2" style="margin-top:12px;">
+        <div>
+          <div class="controlLabel">Log</div>
+          <select id="psLog">
+            <option value="Application" selected>Application</option>
+            <option value="System">System</option>
+            <option value="Security">Security</option>
+            <option value="Setup">Setup</option>
+          </select>
+        </div>
+        <div>
+          <div class="controlLabel">Preset</div>
+          <select id="psPreset"></select>
+        </div>
+        <div>
+          <div class="controlLabel">Event IDs (comma-separated)</div>
+          <input type="text" id="psIds" value="1000" placeholder="e.g. 1000 or 41,6008"/>
+        </div>
+        <div>
+          <div class="controlLabel">MaxEvents</div>
+          <input type="number" id="psMax" value="120" min="1" step="1"/>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <span class="sev warn" id="psHintBadge">Hint</span>
+        <span class="smallNote" id="psHint">Choose a preset or scenario.</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btnPrimary" id="psGen">Generate Command</button>
+        <button class="btn btnGhost" id="psCopy">Copy</button>
+        <button class="btn btnGhost" id="psSave">Save Assisted Export .PS1</button>
+      </div>
+
+      <div style="margin-top:12px;">
+        <pre id="psOut">No command generated yet.</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Generated by Copilot. Offline-safe: does not execute log queries in-browser. Import XML/JSON for analysis.</div>
+    <div>Use Scenario Picker for zero-typing Assisted Export + ITSM notes generation.</div>
+  </div>
+
+</div>
+
+<script>
+(() => {
+  // JS status + time
+  const jsStatus = document.getElementById('jsStatus');
+  if (jsStatus) jsStatus.innerHTML = 'JavaScript status: <span class="sev good">RUNNING</span>';
+
+  const fmtNow = () => new Date().toLocaleString();
+  const tick = () => {
+    const s = fmtNow();
+    document.getElementById('timeBadge').textContent = s;
+    document.getElementById('hdrGen').textContent = s;
+  };
+  tick(); setInterval(tick, 1000);
+
+  // Overlay
+  const overlay = document.getElementById('overlay');
+  document.getElementById('beginBtn').addEventListener('click', () => {
+    overlay.classList.add('hide');
+    setTimeout(() => overlay.style.display = 'none', 420);
+  });
+
+  // Collapsible cards
+  document.querySelectorAll('[data-toggle="card"]').forEach(h => {
+    h.addEventListener('click', () => h.closest('.card').classList.toggle('collapsed'));
+  });
+
+  // State
+  let state = {
+    source: null,
+    file: null,
+    events: [],
+    analysis: null
+  };
+
+  // Helpers
+  const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+  }[m]));
+
+  const parseTime = (t) => { const d = new Date(t); return isNaN(d.getTime()) ? null : d; };
+
+  const hourKey = (d) => {
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:00`;
+  };
+
+  const levelFromNum = (n) => ({1:'Critical',2:'Error',3:'Warning',4:'Information',5:'Verbose'}[n] || 'Other');
+
+  const idSetFrom = (txt) => {
+    const t = (txt||'').trim();
+    if(!t) return null;
+    const set = new Set();
+    t.split(',').map(x=>x.trim()).filter(Boolean).forEach(p => {
+      const n = Number(p);
+      if(Number.isFinite(n) && n>0) set.add(n);
+    });
+    return set.size ? set : null;
+  };
+
+  const idsArrayFrom = (txt) => {
+    const set = idSetFrom(txt);
+    return set ? Array.from(set.values()) : [];
+  };
+
+  const safeMessageFromEventData = (ev) => {
+    const parts = [];
+    try{
+      const datas = ev.getElementsByTagNameNS('*','Data');
+      for (let i=0;i<datas.length;i++){
+        const dn = datas[i];
+        const name = dn.getAttribute('Name');
+        const val = (dn.textContent||'').trim();
+        if(!val) continue;
+        parts.push(name ? `${name}=${val}` : val);
+        if(parts.length >= 40) break;
+      }
+    }catch(e){}
+    if(parts.length) return parts.join(' | ');
+    try{
+      const ud = ev.getElementsByTagNameNS('*','UserData')[0];
+      if(ud) return (ud.textContent||'').trim();
+    }catch(e){}
+    return '';
+  };
+
+  const setMeta = (msg) => document.getElementById('metaLine').textContent = msg || '';
+
+  // Analysis cards (8)
+  const analysisSections = [
+    ['Overall Health Assessment','cardOverall'],
+    ['Confirmed Findings','cardConfirmed'],
+    ['Likely Root Cause Category','cardLikely'],
+    ['Safe Self-Healing Steps','cardSafe'],
+    ['Admin-Only Remediation Steps','cardAdmin'],
+    ['What Not To Do Yet','cardDont'],
+    ['What Evidence To Collect Next','cardNext'],
+    ['Escalation Recommendation','cardEsc']
+  ];
+  const analysisRoot = document.getElementById('analysisCards');
+  analysisSections.forEach((s, i) => {
+    const [title, id] = s;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.setProperty('--d', `${0.22 + i*0.05}s`);
+    card.innerHTML = `
+      <div class="cardHead" data-toggle="card">
+        <h3 class="cardHeading">${escapeHtml(title)}</h3>
+        <div class="cardToggle">click to collapse/expand</div>
+      </div>
+      <div class="cardBody" id="${id}"><div class="smallNote">Load events then click “Generate Analysis + ITSM Notes”.</div></div>
+    `;
+    analysisRoot.appendChild(card);
+  });
+  analysisRoot.querySelectorAll('[data-toggle="card"]').forEach(h => {
+    h.addEventListener('click', () => h.closest('.card').classList.toggle('collapsed'));
+  });
+
+  // Scenario + PS builder references
+  const autoDownload = document.getElementById('autoDownload');
+  const autoDownloadNote = document.getElementById('autoDownloadNote');
+  const scenarioHint = document.getElementById('scenarioHint');
+
+  function setAutoDownloadNote(){
+    if(autoDownload.checked){
+      autoDownloadNote.innerHTML = `<span class="sev good">AUTO</span> Clicking a scenario will download the export script immediately.`;
+    } else {
+      autoDownloadNote.innerHTML = `<span class="sev warn">MANUAL</span> Clicking a scenario will only fill filters; use “Save Assisted Export .PS1” when ready.`;
+    }
+  }
+  autoDownload.addEventListener('change', setAutoDownloadNote);
+  setAutoDownloadNote();
+
+  // Scenario definitions
+  const scenarios = [
+    {label:'App Crash (1000)', log:'Application', ids:'1000', hint:'Application ID 1000 indicates a crash. Export and inspect Provider/Message to identify faulting app/module.'},
+    {label:'App Hang (1002)', log:'Application', ids:'1002', hint:'Application ID 1002 indicates a hang/unresponsive state.'},
+    {label:'CPU Firmware Throttle (37)', log:'System', ids:'37', hint:'System ID 37 often indicates firmware CPU limiting (thermal/power).'},
+    {label:'Unexpected Shutdown (41,6008)', log:'System', ids:'41,6008', hint:'System IDs 41/6008 indicate improper shutdown; correlate with power/dock/UPS usage.'},
+    {label:'NTFS Warning (55)', log:'System', ids:'55', hint:'System ID 55 indicates NTFS warnings. Avoid destructive disk actions without approval.'},
+    {label:'Driver Load Issues (219)', log:'System', ids:'219', hint:'System ID 219 indicates driver/device initialization issues.'},
+    {label:'Logon Failure (4625)', log:'Security', ids:'4625', hint:'Security ID 4625 indicates failed logon attempts.'}
+  ];
+
+  // PowerShell builder elements
+  const ps = {
+    log: document.getElementById('psLog'),
+    preset: document.getElementById('psPreset'),
+    ids: document.getElementById('psIds'),
+    max: document.getElementById('psMax'),
+    out: document.getElementById('psOut'),
+    hint: document.getElementById('psHint'),
+    hintBadge: document.getElementById('psHintBadge')
+  };
+
+  const presetList = [
+    {log:'Application', ids:'1000', text:'1000 — App Crash', hint:'Common crash signature. Use Provider/Message to identify faulting app/module.'},
+    {log:'Application', ids:'1002', text:'1002 — App Hang', hint:'Hang/unresponsive signature.'},
+    {log:'Application', ids:'1026', text:'1026 — .NET Runtime', hint:'.NET errors. Look for exception/app in message.'},
+    {log:'System', ids:'37', text:'37 — CPU Firmware Throttle', hint:'Firmware limiting CPU speed (thermal/power).'},
+    {log:'System', ids:'41,6008', text:'41,6008 — Shutdown Sequence', hint:'Improper shutdown sequence and unexpected shutdown events.'},
+    {log:'System', ids:'55', text:'55 — NTFS Warning', hint:'File system warnings.'},
+    {log:'System', ids:'219', text:'219 — Kernel-PnP', hint:'Driver/device initialization issues.'},
+    {log:'Security', ids:'4625', text:'4625 — Failed Logon', hint:'Authentication failures.'},
+    {log:'Security', ids:'4624', text:'4624 — Successful Logon', hint:'Login timeline evidence.'}
+  ];
+
+  const setPsHint = (text, sev) => {
+    ps.hint.textContent = text || '';
+    ps.hintBadge.className = 'sev ' + (sev || 'warn');
+    ps.hintBadge.textContent = 'Hint';
+  };
+
+  function rebuildPsPresets(){
+    const l = ps.log.value;
+    ps.preset.innerHTML = '';
+    presetList.filter(p=>p.log===l).forEach(p=>{
+      const o = document.createElement('option');
+      o.value = p.ids;
+      o.textContent = p.text;
+      ps.preset.appendChild(o);
+    });
+    const first = presetList.find(p=>p.log===l);
+    if(first){
+      ps.ids.value = first.ids;
+      setPsHint(first.hint, 'good');
+    }
+    genPsCommand();
+  }
+
+  function psIdArrayLiteral(idsTxt){
+    const ids = idsArrayFrom(idsTxt);
+    if(!ids.length) return '@(1000)';
+    return `@(${ids.join(',')})`;
+  }
+
+  function genPsCommand(){
+    const log = ps.log.value || 'Application';
+    const idsTxt = ps.ids.value || '1000';
+    const max = Number(ps.max.value || 120);
+    ps.out.textContent =
+`$EventIds = ${psIdArrayLiteral(idsTxt)}
+Get-WinEvent -FilterHashtable @{LogName='${log}'; Id=$EventIds} -MaxEvents ${max} |
+Select-Object TimeCreated, ProviderName, Id, LevelDisplayName, Message |
+Format-Table -Wrap -AutoSize`;
+  }
+
+  // Assisted PS1 (MULTI-ID) — IMPORTANT: fixed desktop path using [Environment]::GetFolderPath
+  function assistedPs1(log, idsTxt, maxEvents){
+    const ids = idsArrayFrom(idsTxt);
+    const idsLiteral = ids.length ? `@(${ids.join(',')})` : '@(1000)';
+    const safeName = (ids.length ? ids.join('-') : '1000');
+    return `# IT HealthCheck - Assisted Event Log Export (Read-only)
+# Exports Get-WinEvent results to JSON on Desktop for offline dashboard import.
+# Supports multiple Event IDs.
+
+param(
+  [string]$LogName = '${log}',
+  [int[]]$EventIds = ${idsLiteral},
+  [int]$MaxEvents = ${maxEvents}
+)
+
+$ts = Get-Date -Format "yyyyMMdd_HHmmss"
+$desktop = [Environment]::GetFolderPath('Desktop')
+$outFile = Join-Path $desktop ("IT_HealthCheck_EventLogResults_{0}_{1}_{2}.json" -f $LogName, '${safeName}', $ts)
+
+try {
+  $events = Get-WinEvent -FilterHashtable @{ LogName = $LogName; Id = $EventIds } -MaxEvents $MaxEvents |
+    Select-Object TimeCreated, ProviderName, Id, LevelDisplayName, Message
+
+  $payload = [pscustomobject]@{
+    Meta = [pscustomobject]@{
+      Generated = (Get-Date).ToString("o")
+      LogName   = $LogName
+      EventIds  = ($EventIds -join ',')
+      MaxEvents = $MaxEvents
+      Count     = ($events | Measure-Object).Count
+      Computer  = $env:COMPUTERNAME
+      User      = $env:USERNAME
+    }
+    Events = $events
+  }
+
+  $payload | ConvertTo-Json -Depth 6 | Out-File -FilePath $outFile -Encoding UTF8
+  Write-Host "Export complete:" -ForegroundColor Green
+  Write-Host $outFile -ForegroundColor Cyan
+  Write-Host ""
+  Write-Host "Next: Import this JSON into the IT HealthCheck dashboard." -ForegroundColor Yellow
+} catch {
+  Write-Host "Export failed:" -ForegroundColor Red
+  Write-Host $_.Exception.Message -ForegroundColor Yellow
+  exit 1
+}
+`;
+  }
+
+  function downloadTextFile(filename, content){
+    const blob = new Blob([content], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+
+  function saveAssistedPs1FromCurrent(){
+    const log = ps.log.value || 'Application';
+    const idsTxt = ps.ids.value || '1000';
+    const max = Number(ps.max.value || 120);
+    const ids = idsArrayFrom(idsTxt);
+    const idsName = ids.length ? ids.join('-') : '1000';
+    const name = `IT_HealthCheck_Assisted_Export_${log}_${idsName}.ps1`;
+    downloadTextFile(name, assistedPs1(log, idsTxt, max));
+    setPsHint('Saved assisted export PS1. Run it to generate JSON on Desktop, then import JSON.', 'good');
+  }
+
+  document.getElementById('psGen').addEventListener('click', genPsCommand);
+  document.getElementById('psCopy').addEventListener('click', async ()=>{
+    try{
+      await navigator.clipboard.writeText(ps.out.textContent);
+      setPsHint('Copied command to clipboard.', 'good');
+    }catch{
+      setPsHint('Clipboard blocked. Select and copy manually from the command box.', 'warn');
+    }
+  });
+  document.getElementById('psSave').addEventListener('click', saveAssistedPs1FromCurrent);
+
+  ps.log.addEventListener('change', rebuildPsPresets);
+  ps.preset.addEventListener('change', ()=>{
+    const v = ps.preset.value;
+    if(v){
+      ps.ids.value = v;
+      const p = presetList.find(x=>x.log===ps.log.value && x.ids===v);
+      setPsHint(p ? p.hint : 'Preset applied.', 'good');
+      genPsCommand();
+    }
+  });
+  ps.ids.addEventListener('input', genPsCommand);
+  ps.max.addEventListener('input', genPsCommand);
+
+  rebuildPsPresets();
+
+  // Scenario chips with auto-download (B)
+  const chips = document.getElementById('scenarioChips');
+  scenarios.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'chip';
+    d.textContent = s.label;
+    d.title = `Suggested log: ${s.log} | IDs: ${s.ids}`;
+    d.addEventListener('click', () => {
+      // Fill table filters
+      document.getElementById('idFilter').value = s.ids;
+      document.getElementById('providerFilter').value = '';
+      document.getElementById('searchBox').value = '';
+      document.getElementById('levelFilter').value = 'ALL';
+
+      // Update scenario hint
+      scenarioHint.innerHTML = `<span class="sev good">Selected</span> ${escapeHtml(s.hint)}`;
+
+      // Fill PS builder
+      ps.log.value = s.log;
+      rebuildPsPresets();
+      ps.ids.value = s.ids;
+      setPsHint(s.hint, 'good');
+      genPsCommand();
+
+      // Render table with new filters (if already loaded)
+      renderTable();
+
+      // Auto-download Assisted PS1 if enabled (B)
+      if(autoDownload.checked){
+        const max = Number(ps.max.value || 120);
+        const ids = idsArrayFrom(s.ids);
+        const idsName = ids.length ? ids.join('-') : '1000';
+        const name = `IT_HealthCheck_Assisted_Export_${s.log}_${idsName}.ps1`;
+        downloadTextFile(name, assistedPs1(s.log, s.ids, max));
+        autoDownloadNote.innerHTML = `<span class="sev good">DOWNLOADED</span> ${escapeHtml(name)} (run to export JSON → import here)`;
+      }
+    });
+    chips.appendChild(d);
+  });
+
+  // Load XML
+  async function loadXml(){
+    const f = document.getElementById('xmlPick').files[0];
+    if(!f){ setMeta('No XML selected.'); return; }
+    const txt = await f.text();
+    const doc = new DOMParser().parseFromString(txt, 'application/xml');
+
+    if(doc.getElementsByTagName('parsererror').length){
+      setMeta('XML parse error. Ensure Event Viewer export type is XML (not EVTX/CSV).');
+      return;
+    }
+
+    const evNodes = Array.from(doc.getElementsByTagNameNS('*','Event'));
+    if(!evNodes.length){ setMeta('No <Event> nodes found in XML.'); return; }
+
+    const events = evNodes.map(ev => {
+      const sys = ev.getElementsByTagNameNS('*','System')[0];
+      const provider = sys?.getElementsByTagNameNS('*','Provider')[0]?.getAttribute('Name') || '';
+      const id = Number(sys?.getElementsByTagNameNS('*','EventID')[0]?.textContent || '') || null;
+      const levelNum = Number(sys?.getElementsByTagNameNS('*','Level')[0]?.textContent || '') || null;
+      const level = levelFromNum(levelNum);
+      const timeStr = sys?.getElementsByTagNameNS('*','TimeCreated')[0]?.getAttribute('SystemTime') || '';
+      const t = parseTime(timeStr);
+      const time = t ? t.toISOString() : (timeStr || null);
+
+      let msg = '';
+      const renderingInfo = ev.getElementsByTagNameNS('*','RenderingInfo')[0];
+      if(renderingInfo){
+        const msgNode = renderingInfo.getElementsByTagNameNS('*','Message')[0];
+        msg = (msgNode ? msgNode.textContent : renderingInfo.textContent || '').trim();
+      } else {
+        msg = safeMessageFromEventData(ev);
+      }
+
+      return {TimeCreated: time, ProviderName: provider||null, Id: id, LevelDisplayName: level, Message: msg||null};
+    }).sort((a,b)=>{
+      const ta = parseTime(a.TimeCreated)?.getTime() ?? 0;
+      const tb = parseTime(b.TimeCreated)?.getTime() ?? 0;
+      return tb - ta;
+    });
+
+    state = { source:'XML', file:f.name, events, analysis:null };
+    setMeta(`Loaded XML: ${f.name} | Events: ${events.length}`);
+    buildSummary();
+    renderTable();
+  }
+
+  // Load JSON
+  async function loadJson(){
+    const f = document.getElementById('jsonPick').files[0];
+    if(!f){ setMeta('No JSON selected.'); return; }
+    let obj;
+    try { obj = JSON.parse(await f.text()); }
+    catch { setMeta('JSON parse error.'); return; }
+    const evs = Array.isArray(obj.Events) ? obj.Events : [];
+    const events = evs.map(e=>({
+      TimeCreated: e.TimeCreated || null,
+      ProviderName: e.ProviderName || null,
+      Id: (e.Id!==undefined && e.Id!==null) ? Number(e.Id) : null,
+      LevelDisplayName: e.LevelDisplayName || 'Other',
+      Message: e.Message || null
+    })).sort((a,b)=>{
+      const ta = parseTime(a.TimeCreated)?.getTime() ?? 0;
+      const tb = parseTime(b.TimeCreated)?.getTime() ?? 0;
+      return tb - ta;
+    });
+
+    state = { source:'JSON', file:f.name, events, analysis:null };
+    setMeta(`Loaded JSON: ${f.name} | Events: ${events.length}`);
+    buildSummary();
+    renderTable();
+  }
+
+  // Summary tiles
+  function buildSummary(){
+    const root = document.getElementById('summaryTiles');
+    const ev = state.events || [];
+    root.innerHTML = '';
+    if(!ev.length){
+      root.innerHTML = '<div class="smallNote">No events loaded.</div>';
+      return;
+    }
+
+    const levels = {Critical:0, Error:0, Warning:0, Information:0, Verbose:0, Other:0};
+    const ids = {};
+    const prov = {};
+    let minT=null, maxT=null;
+
+    ev.forEach(e=>{
+      const lvl = e.LevelDisplayName || 'Other';
+      levels[lvl] = (levels[lvl]||0) + 1;
+      if(Number.isFinite(e.Id)) ids[e.Id] = (ids[e.Id]||0)+1;
+      const p = e.ProviderName || 'Unknown';
+      prov[p] = (prov[p]||0)+1;
+      const dt = parseTime(e.TimeCreated);
+      if(dt){ minT = (!minT||dt<minT)?dt:minT; maxT = (!maxT||dt>maxT)?dt:maxT; }
+    });
+
+    const topId = Object.entries(ids).sort((a,b)=>b[1]-a[1])[0];
+    const topProv = Object.entries(prov).sort((a,b)=>b[1]-a[1])[0];
+
+    const tiles = [
+      {label:'Events', value:String(ev.length), sev:'good'},
+      {label:'Critical', value:String(levels.Critical||0), sev:(levels.Critical||0)>0?'bad':'good'},
+      {label:'Errors', value:String(levels.Error||0), sev:(levels.Error||0)>0?'bad':'good'},
+      {label:'Warnings', value:String(levels.Warning||0), sev:(levels.Warning||0)>0?'warn':'good'},
+      {label:'Top ID', value: topId ? `${topId[0]} (${topId[1]})` : 'N/A', sev: topId && topId[1]>=4 ? 'warn':'good'},
+      {label:'Top Provider', value: topProv ? `${topProv[0]} (${topProv[1]})` : 'N/A', sev: topProv && topProv[1]>=4 ? 'warn':'good'},
+      {label:'Span', value: (minT&&maxT) ? `${minT.toLocaleString()} → ${maxT.toLocaleString()}` : 'N/A', sev:'good'}
+    ];
+
+    tiles.forEach((t, i)=>{
+      const div = document.createElement('div');
+      div.className='tile';
+      div.style.setProperty('--d', `${0.02 + i*0.06}s`);
+      div.innerHTML = `
+        <div class="metric">${escapeHtml(t.value)}</div>
+        <div class="label">${escapeHtml(t.label)}</div>
+        <div style="margin-top:10px;"><span class="sev ${t.sev}">${t.sev.toUpperCase()}</span></div>
+      `;
+      root.appendChild(div);
+    });
+  }
+
+  // Table render
+  function renderTable(){
+    const tbody = document.getElementById('resultBody');
+    const q = (document.getElementById('searchBox').value||'').toLowerCase();
+    const lvl = document.getElementById('levelFilter').value;
+    const ids = idSetFrom(document.getElementById('idFilter').value);
+    const pFilter = (document.getElementById('providerFilter').value||'').toLowerCase().trim();
+
+    const ev = (state.events||[]).filter(e=>{
+      if(lvl !== 'ALL' && (e.LevelDisplayName||'Other') !== lvl) return false;
+      if(ids && !(Number.isFinite(e.Id) && ids.has(Number(e.Id)))) return false;
+      const p = String(e.ProviderName||'').toLowerCase();
+      if(pFilter && !p.includes(pFilter)) return false;
+      if(!q) return true;
+      const m = String(e.Message||'').toLowerCase();
+      return p.includes(q) || m.includes(q);
+    });
+
+    tbody.innerHTML = '';
+    if(!ev.length){
+      tbody.innerHTML = `<tr><td colspan="5" class="smallNote">No matching rows.</td></tr>`;
+      return;
+    }
+
+    ev.forEach(e=>{
+      const level = e.LevelDisplayName || 'Other';
+      const sev = (level==='Critical'||level==='Error') ? 'bad' : (level==='Warning' ? 'warn' : 'good');
+      const msg = String(e.Message||'').replace(/\s+/g,' ').trim();
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td>${e.TimeCreated ? escapeHtml(e.TimeCreated) : '<span class="smallNote">N/A</span>'}</td>
+          <td>${e.ProviderName ? escapeHtml(e.ProviderName) : '<span class="smallNote">N/A</span>'}</td>
+          <td>${Number.isFinite(e.Id) ? escapeHtml(String(e.Id)) : '<span class="smallNote">N/A</span>'}</td>
+          <td><span class="sev ${sev}">${escapeHtml(level)}</span></td>
+          <td>${msg ? escapeHtml(msg) : '<span class="smallNote">N/A</span>'}</td>
+        </tr>
+      `);
+    });
+  }
+
+  // Analysis + ITSM generation
+  function analyzeAndBuildITSM(){
+    const ev = state.events || [];
+    const setCard = (id, html) => document.getElementById(id).innerHTML = html;
+    if(!ev.length){
+      analysisSections.forEach(([, id]) => setCard(id, `<div class="smallNote">No events loaded.</div>`));
+      document.getElementById('itsmText').value = '';
+      document.getElementById('itsmStatus').textContent = 'No ITSM notes generated: no events loaded.';
+      return;
+    }
+
+    const levels = {Critical:0, Error:0, Warning:0, Information:0, Verbose:0, Other:0};
+    const ids = {};
+    const prov = {};
+    const hours = {};
+    let minT=null, maxT=null;
+
+    ev.forEach(e=>{
+      const lvl = e.LevelDisplayName || 'Other';
+      levels[lvl] = (levels[lvl]||0)+1;
+      if(Number.isFinite(e.Id)) ids[e.Id] = (ids[e.Id]||0)+1;
+      const p = e.ProviderName || 'Unknown';
+      prov[p] = (prov[p]||0)+1;
+      const dt = parseTime(e.TimeCreated);
+      if(dt){
+        minT = (!minT||dt<minT)?dt:minT;
+        maxT = (!maxT||dt>maxT)?dt:maxT;
+        const hk = hourKey(dt);
+        hours[hk] = (hours[hk]||0)+1;
+      }
+    });
+
+    const topIds = Object.entries(ids).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const topProv = Object.entries(prov).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const clusters = Object.entries(hours).filter(x=>x[1]>=3).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+    const has = (id)=>!!ids[id];
+    const cnt = (id)=>ids[id]||0;
+
+    // Overall
+    const risk = (levels.Critical + levels.Error) >= 4 ? 'bad' : ((levels.Critical + levels.Error) >= 1 ? 'warn' : 'good');
+    setCard('cardOverall', `
+      <div>
+        <span class="sev ${risk}">${risk==='bad'?'ELEVATED':risk==='warn'?'MODERATE':'STABLE'}</span>
+        <span class="smallNote">Based only on imported events (${escapeHtml(state.source)}).</span>
+      </div>
+      <ul>
+        <li><b>Events:</b> ${ev.length}</li>
+        <li><b>Time range:</b> ${minT&&maxT ? `${minT.toLocaleString()} → ${maxT.toLocaleString()}` : 'N/A'}</li>
+        <li><b>Levels:</b> Critical ${levels.Critical||0}, Error ${levels.Error||0}, Warning ${levels.Warning||0}, Information ${levels.Information||0}</li>
+      </ul>
+      <div class="sev warn" style="margin-top:8px;">Time Clusters (≥3 events/hour)</div>
+      ${clusters.length ? `<ul>${clusters.map(([h,c])=>`<li><b>${escapeHtml(h)}</b> — ${c} events</li>`).join('')}</ul>` : `<div class="smallNote">No strong clusters detected.</div>`}
+    `);
+
+    setCard('cardConfirmed', `
+      <ul>
+        <li><b>Imported source:</b> ${escapeHtml(state.source)} (${escapeHtml(state.file||'N/A')})</li>
+        <li><b>Top Event IDs:</b> ${topIds.length ? topIds.map(([i,c])=>`${i} (${c})`).join(', ') : 'N/A'}</li>
+        <li><b>Top Providers:</b> ${topProv.length ? topProv.map(([p,c])=>`${escapeHtml(p)} (${c})`).join(', ') : 'N/A'}</li>
+      </ul>
+    `);
+
+    const hints = [];
+    if(has(37)) hints.push(`ID 37 detected (${cnt(37)}): likely firmware CPU limiting (thermal/power).`);
+    if(has(41) || has(6008)) hints.push(`ID 41/6008 detected: possible improper shutdown/power interruption.`);
+    if(has(1000) || has(1002)) hints.push(`ID 1000/1002 detected: application crash/hang evidence exists.`);
+    if(has(55)) hints.push(`ID 55 detected: NTFS warnings present (review carefully).`);
+    if(!hints.length) hints.push('No common signature IDs detected among standard crash/power/thermal patterns. Use Top IDs + Provider/Message context.');
+    setCard('cardLikely', `
+      <div class="smallNote">Hints derived from Event IDs present. Validate using Provider/Message and timestamps.</div>
+      <ul style="margin-top:10px;">${hints.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>
+    `);
+
+    const safe = [];
+    safe.push('Use table filters to isolate key Event IDs and capture exact timestamps + Provider + Message text for correlation.');
+    safe.push('Export both Application and System logs for the same time window if correlation is required.');
+    if(has(37)) safe.push('Set Power mode to Balanced (Settings → System → Power & battery → Power mode) and retest stability.');
+    if(has(55)) safe.push('Run non-destructive scan: Command Prompt → chkdsk C: /scan (capture output).');
+    setCard('cardSafe', `<ul>${safe.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`);
+
+    const admin = [];
+    if(has(37)) admin.push('BIOS/firmware review/update if ID 37 repeats frequently (requires IT approval/change control).');
+    if(has(55)) admin.push('If disk scan indicates repairs required or errors repeat, escalate to endpoint/storage team for controlled remediation.');
+    if(!admin.length) admin.push('No admin-only actions justified by current imported patterns.');
+    setCard('cardAdmin', `<ul>${admin.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`);
+
+    const dont = [
+      'Do not reset Windows, rebuild profiles, remove drivers/devices, or apply registry edits based only on event presence.',
+      'Do not disable security features (VBS/Hyper-V) without security approval and clear evidence.'
+    ];
+    if(has(55)) dont.push('Do not run offline CHKDSK repairs (/f) without IT approval and backup validation.');
+    setCard('cardDont', `<ul>${dont.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`);
+
+    const next = [
+      'Capture “General” tab text for top Event IDs and attach the XML/JSON evidence to the ITSM ticket.',
+      'If app crash/hang: use Reliability Monitor for the same timestamp to capture faulting module/bucket.'
+    ];
+    setCard('cardNext', `<ul>${next.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`);
+
+    const esc = [
+      'Escalate when the same Error/Critical repeats ≥2 times in 48 hours with confirmed user impact; include timestamps and event messages.'
+    ];
+    if(has(37)) esc.push('Escalate to firmware/endpoint team if ID 37 occurs ≥5 times in 24 hours or correlates with app failures.');
+    if(has(41) || has(6008)) esc.push('Escalate if shutdown events repeat ≥2 times in 7 days or align with power/dock issues.');
+    setCard('cardEsc', `<ul>${esc.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`);
+
+    // Build ITSM text (D)
+    const subject = `Event Log Analysis (${state.source || 'N/A'}) - ${state.file || 'N/A'}`;
+    const impact = (levels.Critical + levels.Error) > 0
+      ? `User/workflow impact possible. Observed ${levels.Critical||0} Critical and ${levels.Error||0} Error events in imported dataset.`
+      : `No Critical/Error events observed in imported dataset; monitoring recommended unless user symptoms persist.`;
+
+    const topIdText = topIds.length ? topIds.map(([i,c])=>`${i} (${c})`).join(', ') : 'N/A';
+    const topProvText = topProv.length ? topProv.map(([p,c])=>`${p} (${c})`).join(', ') : 'N/A';
+    const clusterText = clusters.length ? clusters.map(([h,c])=>`${h}=${c}`).join('; ') : 'None detected (≥3/hour threshold).';
+
+    const likelyCause = hints.join(' | ');
+    const safePlan = safe.map((x,i)=>`${i+1}. ${x}`).join('\n');
+    const adminPlan = admin.map((x,i)=>`${i+1}. ${x}`).join('\n');
+
+    const itsm =
+`Category: Endpoint / Windows / Event Logs
+Subject: ${subject}
+Business Impact: ${impact}
+
+Description:
+Technician used IT HealthCheck Event Log Dashboard to import and analyze event data.
+Source: ${state.source || 'N/A'}
+File: ${state.file || 'N/A'}
+Time Range: ${minT && maxT ? (minT.toLocaleString() + ' → ' + maxT.toLocaleString()) : 'N/A'}
+Counts: Events=${ev.length}, Critical=${levels.Critical||0}, Error=${levels.Error||0}, Warning=${levels.Warning||0}, Information=${levels.Information||0}
+
+Work Notes:
+- Investigation Summary:
+  - Top Event IDs: ${topIdText}
+  - Top Providers: ${topProvText}
+  - Time clusters (events/hour ≥3): ${clusterText}
+- Confirmed Findings:
+  - Findings above are based only on imported event evidence (Provider/ID/Message/Timestamps).
+- Likely Cause (Hints - requires validation):
+  - ${likelyCause}
+- Resolution / Action Plan (Safe Self-Healing):
+${safePlan ? '  ' + safePlan.split('\n').join('\n  ') : '  N/A'}
+- Admin-Only Remediation (if required):
+${adminPlan ? '  ' + adminPlan.split('\n').join('\n  ') : '  N/A'}
+- Follow-Up / Monitoring:
+  - Capture Event Viewer “General” text for key events and attach evidence file.
+  - If repeated errors occur (≥2 within 48 hours), escalate with timestamps and messages.
+
+User Message:
+Hi — we reviewed Windows event logs and collected diagnostic evidence. We applied/outlined safe steps to stabilize the issue and will continue monitoring. If the problem repeats, please note the time it happens so we can match it to the event log entries.`;
+
+    document.getElementById('itsmText').value = itsm;
+    document.getElementById('itsmStatus').innerHTML = `<span class="sev good">READY</span> ITSM notes generated from imported evidence.`;
+
+    // store analysis snapshot
+    state.analysis = {levels, ids, prov, topIds, topProv, clusters, minT, maxT, risk};
+  }
+
+  // Buttons
+  document.getElementById('btnLoadXml').addEventListener('click', loadXml);
+  document.getElementById('btnLoadJson').addEventListener('click', loadJson);
+  document.getElementById('btnAnalyze').addEventListener('click', analyzeAndBuildITSM);
+
+  // Reset
+  document.getElementById('btnReset').addEventListener('click', ()=>{
+    state = { source:null, file:null, events:[], analysis:null };
+    document.getElementById('xmlPick').value = '';
+    document.getElementById('jsonPick').value = '';
+    document.getElementById('searchBox').value = '';
+    document.getElementById('levelFilter').value = 'ALL';
+    document.getElementById('idFilter').value = '';
+    document.getElementById('providerFilter').value = '';
+    document.getElementById('itsmText').value = '';
+    document.getElementById('itsmStatus').textContent = '';
+    setMeta('');
+    document.getElementById('summaryTiles').innerHTML = '<div class="smallNote">Load XML/JSON to populate.</div>';
+    document.getElementById('resultBody').innerHTML = '<tr><td colspan="5" class="smallNote">No events loaded yet.</td></tr>';
+    analysisSections.forEach(([, id]) => document.getElementById(id).innerHTML = '<div class="smallNote">Load events then click “Generate Analysis + ITSM Notes”.</div>');
+    scenarioHint.textContent = '';
+    setAutoDownloadNote();
+  });
+
+  // Table bindings
+  ['searchBox','levelFilter','idFilter','providerFilter'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener(id==='levelFilter' ? 'change' : 'input', renderTable);
+  });
+
+  // ITSM Copy/Download
+  document.getElementById('btnCopyITSM').addEventListener('click', async ()=>{
+    const text = document.getElementById('itsmText').value || '';
+    if(!text){
+      document.getElementById('itsmStatus').innerHTML = `<span class="sev warn">EMPTY</span> Generate Analysis first to populate ITSM notes.`;
+      return;
+    }
+    try{
+      await navigator.clipboard.writeText(text);
+      document.getElementById('itsmStatus').innerHTML = `<span class="sev good">COPIED</span> ITSM notes copied to clipboard.`;
+    }catch{
+      document.getElementById('itsmStatus').innerHTML = `<span class="sev warn">CLIPBOARD BLOCKED</span> Select all text and copy manually.`;
+    }
+  });
+
+  document.getElementById('btnDownloadITSM').addEventListener('click', ()=>{
+    const text = document.getElementById('itsmText').value || '';
+    if(!text){
+      document.getElementById('itsmStatus').innerHTML = `<span class="sev warn">EMPTY</span> Generate Analysis first to populate ITSM notes.`;
+      return;
+    }
+    const name = `ITSM_Notes_${(state.source||'N_A')}_${(state.file||'N_A').replace(/[^a-zA-Z0-9._-]/g,'_')}.txt`;
+    downloadTextFile(name, text);
+    document.getElementById('itsmStatus').innerHTML = `<span class="sev good">DOWNLOADED</span> ${escapeHtml(name)}`;
+  });
+
+})();
+</script>
+
+</body>
+</html>
