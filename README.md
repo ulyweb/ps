@@ -649,3 +649,30 @@ $Report | Out-GridView -Title "Windows Reboot & Update Event Report"
 
 Write-Host "Report successfully saved to: $FullPath" -ForegroundColor Green
 ````
+
+
+---
+
+## Terminal Admin
+````
+# ==============================================================================
+# TERMINAL LAUNCHER: OPEN POWERSHELL AS Adm-ACCOUNT
+# ==============================================================================
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)) 
+{ 
+    Write-Host 'Elevation required. Please authenticate with your a-account.' -ForegroundColor Yellow
+    
+    # Pop up a credential box for the IT
+    $a_account = Get-Credential -Message "Enter your a-account (DOMAIN\a-username)"
+    
+    # Launch a brand new PowerShell terminal using those credentials
+    # Notice that -File "$PSCommandPath" has been removed!
+    Start-Process powershell -Credential $a_account -ArgumentList '-NoProfile -Command "Start-Process powershell -Verb RunAs"'
+    
+    # Exit this launcher window
+    exit 
+}
+
+# If you accidentally run this from a window that is ALREADY elevated:
+Write-Host "You are already running in an Administrator terminal." -ForegroundColor Green
+````
